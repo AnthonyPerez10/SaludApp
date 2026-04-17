@@ -1,0 +1,57 @@
+#Android / Gradle
+.gradle/
+build/
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+
+
+#IntelliJ / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+
+
+# OS 
+.DS_Store
+Thumbs.db
+
+
+# Archivos locales sensibles
+local.properties
+*.keystore
+*.jks
+*.key
+*.pem
+
+
+# Archivos de compilación
+*.apk
+*.ap_
+*.aab
+
+
+#  Logs y temporales
+*.log
+*.tmp
+*.temp
+
+
+# NDK / C++
+.externalNativeBuild/
+.cxx/
+
+# Capturas
+captures/
+
+# Firebase / Google Services
+google-services.json
+
+# Unit Test / Coverage
+coverage/
+*.ec
+
+# Otros
+*.orig
+*.rej
