@@ -9,13 +9,6 @@
     android:background="#E4EEF7"
     tools:context=".activity_menu">
 
-    <!-- LOGO -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
     <ImageView
         android:id="@+id/imageView4"
         android:layout_width="177dp"
@@ -28,7 +21,7 @@
 
     <!-- GRID 2x3 -->
     <androidx.gridlayout.widget.GridLayout
-        android:id="@+id/gridMenu"
+        android:id="@+id/MenuNavegacion"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:padding="8dp"
@@ -41,38 +34,42 @@
 
         <!-- CARD 1 -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/CardV_Peso"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="8dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/black">
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:strokeColor="@color/black"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:gravity="center"
+                android:orientation="vertical"
                 android:padding="10dp">
 
                 <ImageView
+                    android:id="@+id/img_Peso"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_peso"/>
+                    android:src="@drawable/ic_peso" />
 
                 <TextView
+                    android:id="@+id/txt_titulo06"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="Seguimiento de Peso"
-                    android:textStyle="bold"
                     android:textSize="13sp"
-                    android:gravity="center"/>
+                    android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txt_explicacion"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -85,30 +82,33 @@
 
         <!-- CARD 2 -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/CarV_Presion_Arterial"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="8dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/black">
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:strokeColor="@color/black"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:gravity="center"
+                android:orientation="vertical"
                 android:padding="10dp">
 
                 <ImageView
+                    android:id="@+id/img_Presio_arterial"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_presion"/>
+                    android:src="@drawable/ic_presion" />
 
                 <TextView
+                    android:id="@+id/txt_titulo2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -117,6 +117,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txt_parrafo2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -129,30 +130,33 @@
 
         <!-- CARD 3 -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/CardV_Glucosa"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="8dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/black">
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:strokeColor="@color/black"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:gravity="center"
+                android:orientation="vertical"
                 android:padding="10dp">
 
                 <ImageView
+                    android:id="@+id/img_glucosa"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_glucosa"/>
+                    android:src="@drawable/ic_glucosa" />
 
                 <TextView
+                    android:id="@+id/txt_titulo3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -161,6 +165,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txt_parrafo3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -173,30 +178,33 @@
 
         <!-- CARD 4 -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/CardV_Control_Fisico"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="8dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/black">
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:strokeColor="@color/black"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:gravity="center"
+                android:orientation="vertical"
                 android:padding="10dp">
 
                 <ImageView
+                    android:id="@+id/img_fisica"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_actividad"/>
+                    android:src="@drawable/ic_actividad" />
 
                 <TextView
+                    android:id="@+id/txt_titulo4"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -205,6 +213,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txt_parrafo4"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -217,30 +226,33 @@
 
         <!-- CARD 5 -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/CardV_Hidratacion"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="8dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/black">
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:strokeColor="@color/black"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:gravity="center"
+                android:orientation="vertical"
                 android:padding="10dp">
 
                 <ImageView
+                    android:id="@+id/img_hidratacion"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_agua"/>
+                    android:src="@drawable/ic_agua" />
 
                 <TextView
+                    android:id="@+id/txt_titulo5"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -249,6 +261,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/txt_parrafo5"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -261,38 +274,43 @@
 
         <!-- CARD 6 -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/CardV_medicamentos"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="8dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
             app:cardCornerRadius="16dp"
             app:cardElevation="6dp"
-            app:strokeWidth="2dp"
-            app:strokeColor="@color/black">
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:strokeColor="@color/black"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
                 android:gravity="center"
+                android:orientation="vertical"
                 android:padding="10dp">
 
                 <ImageView
+                    android:id="@+id/img_medicamentos"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:scaleType="centerInside"
-                    android:src="@drawable/ic_medicina"/>
+                    android:src="@drawable/ic_medicina" />
 
                 <TextView
+                    android:id="@+id/txt_titulo_medicamentos"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Medicamentos / Recordatorios"
                     android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    tools:ignore="DuplicateIds" />
 
                 <TextView
+                    android:id="@+id/txt_parrafo6"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
