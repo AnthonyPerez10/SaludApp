@@ -19,7 +19,7 @@ import androidx.core.view.WindowInsetsCompat
 
 class Presion_arterial : AppCompatActivity() {
 
-    // Variables del XML Presión Arterial
+    // Variables del XML Presión Arterial Locales
     private lateinit var btnFecha: Button
     private lateinit var txtFecha: TextView
     private lateinit var timePicker: TimePicker
