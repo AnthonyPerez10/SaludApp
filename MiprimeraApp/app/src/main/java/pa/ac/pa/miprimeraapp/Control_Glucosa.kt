@@ -5,6 +5,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowCompat.enableEdgeToEdge
 
 class Control_Glucosa : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

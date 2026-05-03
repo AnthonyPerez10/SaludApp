@@ -89,11 +89,10 @@
                         android:layout_height="wrap_content"
                         android:text="Sistólica"/>
 
-                    <EditText
+                    <NumberPicker
                         android:id="@+id/npSistolica"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"/>
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <!-- Diastólica -->
@@ -109,11 +108,10 @@
                         android:layout_height="wrap_content"
                         android:text="Diastólica"/>
 
-                    <EditText
+                    <NumberPicker
                         android:id="@+id/npDiastolica"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"/>
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
                 <!-- Pulso -->
@@ -129,11 +127,10 @@
                         android:layout_height="wrap_content"
                         android:text="Pulso"/>
 
-                    <EditText
+                    <NumberPicker
                         android:id="@+id/npPulso"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"/>
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
 
             </LinearLayout>

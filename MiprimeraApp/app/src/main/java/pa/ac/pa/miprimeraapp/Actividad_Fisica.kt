@@ -5,6 +5,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowCompat.enableEdgeToEdge
 
 class Actividad_Fisica : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

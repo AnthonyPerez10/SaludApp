@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowCompat.enableEdgeToEdge
 
 class Control_peso : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
