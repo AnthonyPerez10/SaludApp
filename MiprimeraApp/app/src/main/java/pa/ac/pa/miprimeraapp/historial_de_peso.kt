@@ -15,7 +15,6 @@ import java.util.Locale
 
 class historial_de_peso : AppCompatActivity() {
 
-    // Modelo de datos
     data class RegistroPeso(
         val fecha: String,
         val peso: Double,
@@ -28,11 +27,17 @@ class historial_de_peso : AppCompatActivity() {
 
         setContentView(R.layout.activity_historial_de_peso)
 
-        // Referencia ListView
         val lvHistorial = findViewById<ListView>(R.id.listViewHistorial)
 
-        // Datos estáticos
-        val listaRegistros = listOf(
+        // Recibir datos
+        val pesoRecibido = intent.getDoubleExtra("peso", 0.0)
+        val imcRecibido = intent.getDoubleExtra("imc", 0.0)
+
+        // Lista de registros
+        val listaRegistros = mutableListOf(
+
+            RegistroPeso("Hoy", pesoRecibido, imcRecibido),
+
             RegistroPeso("01/01/2024", 95.5, 42.4),
             RegistroPeso("16/01/2024", 93.8, 31.8),
             RegistroPeso("31/01/2024", 92.0, 31.2),
@@ -48,14 +53,14 @@ class historial_de_peso : AppCompatActivity() {
             RegistroPeso("29/06/2024", 70.5, 23.9),
             RegistroPeso("14/07/2024", 69.0, 23.4),
             RegistroPeso("29/07/2024", 67.5, 22.9)
+
         )
 
-        // Adapter
         val adapter = PesoAdapter(this, listaRegistros)
+
         lvHistorial.adapter = adapter
     }
 
-    // Adapter personalizado
     class PesoAdapter(
         private val context: Context,
         private val data: List<RegistroPeso>
@@ -79,7 +84,9 @@ class historial_de_peso : AppCompatActivity() {
             val item = data[position]
 
             val ivIcono = view.findViewById<ImageView>(R.id.ivIconoIMC)
+
             val tvFecha = view.findViewById<TextView>(R.id.tvFecha)
+
             val tvPesoIMC = view.findViewById<TextView>(R.id.tvPesoIMC)
 
             // Textos
@@ -92,28 +99,33 @@ class historial_de_peso : AppCompatActivity() {
                 item.imc
             )
 
-            // Selección de icono según IMC
+            // Imagen según IMC
             val nombreIcono = when {
+
                 item.imc < 18.5 -> "pesobajo"
+
                 item.imc < 25.0 -> "normal"
+
                 item.imc < 30.0 -> "sobrepeso"
+
                 item.imc < 35.0 -> "obesidad1"
+
                 item.imc < 40.0 -> "obesidad2"
+
                 else -> "obesidad3"
             }
 
-            // Obtener drawable dinámicamente
+            // Buscar drawable
             val resId = context.resources.getIdentifier(
                 nombreIcono,
                 "drawable",
                 context.packageName
             )
 
-            // Asignar icono
+            // Mostrar imagen
             if (resId != 0) {
                 ivIcono.setImageResource(resId)
             } else {
-                // Fallback
                 ivIcono.setImageResource(android.R.drawable.ic_menu_info_details)
             }
 
