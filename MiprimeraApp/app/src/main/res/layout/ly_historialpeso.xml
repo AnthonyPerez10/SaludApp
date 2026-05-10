@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="#FFFFFF"
+    android:paddingStart="12dp"
+    android:paddingEnd="16dp">
+
+    <!-- SOLO ICONO -->
+    <ImageView
+        android:id="@+id/ivIconoIMC"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="Icono IMC"
+        android:scaleType="centerInside"
+        app:srcCompat="@drawable/normal" />
+
+    <!-- Textos -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Fecha -->
+        <TextView
+            android:id="@+id/tvFecha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#1A2B5F"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Fecha: 01/01/2023" />
+
+        <!-- Peso + IMC -->
+        <TextView
+            android:id="@+id/tvPesoIMC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="#6B7280"
+            android:textSize="12sp"
+            tools:text="Peso: 70kg | IMC: 24.5" />
+
+    </LinearLayout>
+
+</LinearLayout>
