@@ -2,19 +2,18 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:tools="http://tools.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F4F8"
+    android:background="@color/peso_background"
     tools:context=".Presion_arterial">
 
-    <!-- Top Bar -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="#673AB7"
+        android:background="@color/peso_primary_blue"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
@@ -24,14 +23,14 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/ic_menu_view"
-            app:tint="#FFFFFF" />
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="Registro de Presión Arterial"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -48,12 +47,11 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Card Datos de la Medición -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/peso_card_bg"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">
 
@@ -68,11 +66,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:text="Datos de la Medición"
-                        android:textColor="#333333"
+                        android:textColor="@color/peso_dark_blue"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
-                    <!-- Fecha y Hora -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -86,8 +83,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
-                            android:backgroundTint="#F5F5F5"
-                            android:textColor="#333333"
+                            android:backgroundTint="@color/peso_background"
+                            android:textColor="@color/black"
                             android:textSize="12sp"
                             android:text="Seleccionar Fecha:\n--/--/----"
                             android:drawableLeft="@android:drawable/ic_menu_month"
@@ -111,19 +108,18 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="--:--"
-                                android:textColor="#333333"
+                                android:textColor="@color/black"
                                 android:textSize="24sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="(24h)"
-                                android:textColor="#757575"
+                                android:textColor="@color/peso_gray_text"
                                 android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Number Pickers -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -145,15 +141,15 @@
                                 android:layout_marginBottom="8dp"
                                 android:gravity="center"
                                 android:text="SISTÓLICA\n(mmHg)"
-                                android:textColor="#333333"
+                                android:textColor="@color/peso_gray_text"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
 
                             <androidx.cardview.widget.CardView
                                 android:layout_width="80dp"
                                 android:layout_height="120dp"
-                                app:cardBackgroundColor="#EDE7F6"
-                                app:cardCornerRadius="40dp"
+                                app:cardBackgroundColor="@color/peso_background"
+                                app:cardCornerRadius="16dp"
                                 app:cardElevation="0dp">
 
                                 <NumberPicker
@@ -177,15 +173,15 @@
                                 android:layout_marginBottom="8dp"
                                 android:gravity="center"
                                 android:text="DIASTÓLICA\n(mmHg)"
-                                android:textColor="#333333"
+                                android:textColor="@color/peso_gray_text"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
 
                             <androidx.cardview.widget.CardView
                                 android:layout_width="80dp"
                                 android:layout_height="120dp"
-                                app:cardBackgroundColor="#EDE7F6"
-                                app:cardCornerRadius="40dp"
+                                app:cardBackgroundColor="@color/peso_background"
+                                app:cardCornerRadius="16dp"
                                 app:cardElevation="0dp">
 
                                 <NumberPicker
@@ -209,15 +205,15 @@
                                 android:layout_marginBottom="8dp"
                                 android:gravity="center"
                                 android:text="PULSO\n(BPM)"
-                                android:textColor="#333333"
+                                android:textColor="@color/peso_gray_text"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
 
                             <androidx.cardview.widget.CardView
                                 android:layout_width="80dp"
                                 android:layout_height="120dp"
-                                app:cardBackgroundColor="#EDE7F6"
-                                app:cardCornerRadius="40dp"
+                                app:cardBackgroundColor="@color/peso_background"
+                                app:cardCornerRadius="16dp"
                                 app:cardElevation="0dp">
 
                                 <NumberPicker
@@ -229,12 +225,11 @@
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Brazo -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Brazo Utilizado:"
-                        android:textColor="#333333"
+                        android:textColor="@color/black"
                         android:textStyle="bold"
                         android:layout_marginBottom="8dp"/>
 
@@ -250,39 +245,37 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="16dp"
                             android:text="Brazo Izquierdo"
-                            android:buttonTint="#673AB7"
-                            android:textColor="#333333"/>
+                            android:buttonTint="@color/peso_primary_blue"
+                            android:textColor="@color/black"/>
 
                         <RadioButton
                             android:id="@+id/rbDerecho"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Brazo Derecho"
-                            android:buttonTint="#673AB7"
-                            android:textColor="#333333"/>
+                            android:buttonTint="@color/peso_primary_blue"
+                            android:textColor="@color/black"/>
                     </RadioGroup>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Botón Analizar -->
             <Button
                 android:id="@+id/btnAnalizar"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginBottom="16dp"
-                android:backgroundTint="#673AB7"
+                android:backgroundTint="@color/peso_save_green"
                 android:text="ANALIZAR MEDICIÓN"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <!-- Resumen y Análisis -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardResumen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#FFFFFF"
+                app:cardBackgroundColor="@color/peso_card_bg"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 android:visibility="gone">
@@ -298,7 +291,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:text="RESUMEN Y ANÁLISIS"
-                        android:textColor="#333333"
+                        android:textColor="@color/peso_dark_blue"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -312,12 +305,12 @@
                             android:layout_height="wrap_content"
                             android:text="Fecha: "
                             android:textStyle="bold"
-                            android:textColor="#333333"/>
+                            android:textColor="@color/black"/>
                         <TextView
                             android:id="@+id/txtResFecha"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="#333333"
+                            android:textColor="@color/black"
                             android:text="--/--/----"/>
                     </LinearLayout>
 
@@ -331,12 +324,12 @@
                             android:layout_height="wrap_content"
                             android:text="Hora: "
                             android:textStyle="bold"
-                            android:textColor="#333333"/>
+                            android:textColor="@color/black"/>
                         <TextView
                             android:id="@+id/txtResHora"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="#333333"
+                            android:textColor="@color/black"
                             android:text="--:--"/>
                     </LinearLayout>
 
@@ -359,12 +352,12 @@
                                     android:layout_height="wrap_content"
                                     android:text="Sistólica: "
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/black"/>
                                 <TextView
                                     android:id="@+id/txtResSistolica"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#333333"
+                                    android:textColor="@color/black"
                                     android:text="-- mmHg"/>
                             </LinearLayout>
                             <LinearLayout
@@ -376,12 +369,12 @@
                                     android:layout_height="wrap_content"
                                     android:text="Diastólica: "
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/black"/>
                                 <TextView
                                     android:id="@+id/txtResDiastolica"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#333333"
+                                    android:textColor="@color/black"
                                     android:text="-- mmHg"/>
                             </LinearLayout>
                         </LinearLayout>
@@ -400,12 +393,12 @@
                                     android:layout_height="wrap_content"
                                     android:text="Pulso: "
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/black"/>
                                 <TextView
                                     android:id="@+id/txtResPulso"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#333333"
+                                    android:textColor="@color/black"
                                     android:text="-- BPM"/>
                             </LinearLayout>
                             <LinearLayout
@@ -417,23 +410,22 @@
                                     android:layout_height="wrap_content"
                                     android:text="Brazo: "
                                     android:textStyle="bold"
-                                    android:textColor="#333333"/>
+                                    android:textColor="@color/black"/>
                                 <TextView
                                     android:id="@+id/txtResBrazo"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textColor="#333333"
+                                    android:textColor="@color/black"
                                     android:text="--"/>
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Clasificación -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:background="#E8F5E9"
+                        android:background="@color/peso_background"
                         android:padding="12dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
@@ -443,18 +435,18 @@
                             android:layout_height="wrap_content"
                             android:text="CLASIFICACIÓN:"
                             android:textStyle="bold"
-                            android:textColor="#333333"
+                            android:textColor="@color/black"
                             android:layout_marginEnd="8dp"/>
 
                         <TextView
                             android:id="@+id/txtResClasificacion"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="#4CAF50"
+                            android:background="@color/peso_save_green"
                             android:paddingHorizontal="16dp"
                             android:paddingVertical="6dp"
                             android:text="NORMAL"
-                            android:textColor="#FFFFFF"
+                            android:textColor="@color/white"
                             android:textStyle="bold"
                             android:gravity="center"
                             android:layout_gravity="center"/>
