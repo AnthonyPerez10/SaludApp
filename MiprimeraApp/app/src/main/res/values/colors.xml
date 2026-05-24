@@ -2,4 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="peso_primary_blue">#1A4373</color>
+    <color name="peso_dark_blue">#112E52</color>
+    <color name="peso_gray_text">#607D8B</color>
+    <color name="peso_background">#F4F6F9</color>
+    <color name="peso_card_bg">#FFFFFF</color>
+    <color name="peso_save_green">#2E7D32</color>
 </resources>
