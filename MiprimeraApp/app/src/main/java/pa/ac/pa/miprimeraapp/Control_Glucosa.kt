@@ -5,11 +5,15 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.TextView // <-- 1. IMPORTANTE: Importar TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import java.text.SimpleDateFormat // <-- Para capturar la hora actual
+import java.util.Locale
+import java.util.Calendar
 
 class Control_Glucosa : AppCompatActivity() {
 
@@ -18,6 +22,9 @@ class Control_Glucosa : AppCompatActivity() {
     private lateinit var etOptionalNotes: EditText
     private lateinit var rgRecordType: RadioGroup
     private lateinit var btnSaveRecord: Button
+
+    // 2. Variable para el TextView del resumen previo
+    private lateinit var tvPreviousSummary: TextView
 
     // Lista global para manejar los RadioButtons anidados manualmente
     private lateinit var listaRadioButtons: List<RadioButton>
@@ -47,6 +54,9 @@ class Control_Glucosa : AppCompatActivity() {
         rgRecordType = findViewById(R.id.rgRecordType)
         btnSaveRecord = findViewById(R.id.btnSaveRecord)
 
+        // 3. Inicializar el componente del XML
+        tvPreviousSummary = findViewById(R.id.tvPreviousSummary)
+
         // Inicializamos los RadioButtons individuales que están ocultos dentro de los LinearLayouts
         listaRadioButtons = listOf(
             findViewById(R.id.rbAyunas),
@@ -73,38 +83,27 @@ class Control_Glucosa : AppCompatActivity() {
     }
 
     private fun ejecutarRegistro() {
-        // Obtener textos y limpiar espacios en blanco innecesarios
         val glucosaTexto = etGlucoseValue.text.toString().trim()
         val notasOpcionales = etOptionalNotes.text.toString().trim()
 
-        // Como el RadioGroup está "ciego", buscamos manualmente cuál de nuestros botones está activo
         val selectedRadioId = listaRadioButtons.find { it.isChecked }?.id ?: -1
         val tipoRegistro = obtenerTipoRegistroTexto(selectedRadioId)
 
-        // Ejecutar las validaciones de seguridad
         if (!validarGlucosa(glucosaTexto)) {
-            return // Detiene la ejecución si hay errores en los datos
+            return
         }
 
-        // Conversión 100% segura tras pasar la validación
         val valorGlucosa = glucosaTexto.toDouble()
-
-        // Procesar la acción final si todo es correcto
         guardarRegistro(valorGlucosa, tipoRegistro, notasOpcionales)
     }
 
-    /**
-     * Aplica filtros estrictos para evitar datos inválidos, vacíos o lógicamente erróneos.
-     */
     private fun validarGlucosa(texto: String): Boolean {
-        // Validación 1: Campo completamente vacío
         if (texto.isEmpty()) {
             etGlucoseValue.error = "El valor de glucosa es obligatorio"
             etGlucoseValue.requestFocus()
             return false
         }
 
-        // Validación 2: Transformación segura (evita caracteres corruptos inesperados)
         val valor = texto.toDoubleOrNull()
         if (valor == null) {
             etGlucoseValue.error = "Ingresa un formato numérico válido"
@@ -112,7 +111,6 @@ class Control_Glucosa : AppCompatActivity() {
             return false
         }
 
-        // Validación 3: Límites médicos estandarizados (mg/dL)
         if (valor < 20.0 || valor > 600.0) {
             etGlucoseValue.error = "El rango real debe estar entre 20 y 600 mg/dL"
             etGlucoseValue.requestFocus()
@@ -122,21 +120,18 @@ class Control_Glucosa : AppCompatActivity() {
         return true
     }
 
-    /**
-     * Convierte el ID seleccionado a un texto comprensible.
-     */
     private fun obtenerTipoRegistroTexto(radioId: Int): String {
         return when (radioId) {
             R.id.rbAyunas -> "Ayunas"
-            R.id.rbAntesAlmuerzo -> "Antes de Almuerzo"
-            R.id.rbDespuesAlmuerzo -> "Después de Almuerzo"
+            R.id.rbAntesAlmuerzo -> "Antes de almuerzo"
+            R.id.rbDespuesAlmuerzo -> "Después de almuerzo"
             R.id.rbCena -> "Cena"
             else -> "No definido"
         }
     }
 
     /**
-     * Muestra la confirmación de guardado y resetea los campos.
+     * Muestra la confirmación de guardado, ACTUALIZA EL RESUMEN y resetea los campos.
      */
     private fun guardarRegistro(glucosa: Double, tipo: String, notas: String) {
         val resumen = "Glucosa: $glucosa mg/dL\nTipo: $tipo\nNotas: ${notas.ifEmpty { "Ninguna" }}"
@@ -144,11 +139,20 @@ class Control_Glucosa : AppCompatActivity() {
         // Alerta de éxito al usuario
         Toast.makeText(this, "Registro Exitoso:\n$resumen", Toast.LENGTH_LONG).show()
 
+        // 4. Obtener la hora actual del sistema en formato hh:mm a (Ej: 12:48 PM)
+        val formateadorHora = SimpleDateFormat("h:mm a", Locale.getDefault())
+        val horaActual = formateadorHora.format(Calendar.getInstance().time)
+
+        // 5. MODIFICAR EL TEXTVIEW CON LOS NUEVOS DATOS INGRESADOS
+        // Quitamos los decimales innecesarios convirtiendo la glucosa a entero si es necesario (ej: 124 en vez de 124.0)
+        val glucosaEntero = glucosa.toInt()
+        tvPreviousSummary.text = "Última lectura: $glucosaEntero mg/dL ($tipo; $horaActual)"
+
         // Limpiar el formulario para un próximo uso limpio
         etGlucoseValue.text.clear()
         etOptionalNotes.text.clear()
 
-        // Reseteo manual de los botones: marcamos únicamente 'Ayunas' y apagamos el resto
+        // Reseteo manual de los botones
         listaRadioButtons.forEach { boton ->
             boton.isChecked = (boton.id == R.id.rbAyunas)
         }
