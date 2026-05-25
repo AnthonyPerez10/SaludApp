@@ -3,6 +3,7 @@ package pa.ac.pa.miprimeraapp
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +18,9 @@ class Control_Glucosa : AppCompatActivity() {
     private lateinit var etOptionalNotes: EditText
     private lateinit var rgRecordType: RadioGroup
     private lateinit var btnSaveRecord: Button
+
+    // Lista global para manejar los RadioButtons anidados manualmente
+    private lateinit var listaRadioButtons: List<RadioButton>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +46,27 @@ class Control_Glucosa : AppCompatActivity() {
         etOptionalNotes = findViewById(R.id.etOptionalNotes)
         rgRecordType = findViewById(R.id.rgRecordType)
         btnSaveRecord = findViewById(R.id.btnSaveRecord)
+
+        // Inicializamos los RadioButtons individuales que están ocultos dentro de los LinearLayouts
+        listaRadioButtons = listOf(
+            findViewById(R.id.rbAyunas),
+            findViewById(R.id.rbAntesAlmuerzo),
+            findViewById(R.id.rbDespuesAlmuerzo),
+            findViewById(R.id.rbCena)
+        )
     }
 
     private fun configurarListeners() {
+        // Simular el comportamiento del RadioGroup manualmente para cada botón
+        listaRadioButtons.forEach { rb ->
+            rb.setOnClickListener { vistaClickeada ->
+                listaRadioButtons.forEach { boton ->
+                    // Solo se queda marcado el botón que el usuario acaba de presionar
+                    boton.isChecked = (boton.id == vistaClickeada.id)
+                }
+            }
+        }
+
         btnSaveRecord.setOnClickListener {
             ejecutarRegistro()
         }
@@ -55,8 +77,8 @@ class Control_Glucosa : AppCompatActivity() {
         val glucosaTexto = etGlucoseValue.text.toString().trim()
         val notasOpcionales = etOptionalNotes.text.toString().trim()
 
-        // Obtener el tipo de registro según el RadioButton seleccionado
-        val selectedRadioId = rgRecordType.checkedRadioButtonId
+        // Como el RadioGroup está "ciego", buscamos manualmente cuál de nuestros botones está activo
+        val selectedRadioId = listaRadioButtons.find { it.isChecked }?.id ?: -1
         val tipoRegistro = obtenerTipoRegistroTexto(selectedRadioId)
 
         // Ejecutar las validaciones de seguridad
@@ -91,7 +113,6 @@ class Control_Glucosa : AppCompatActivity() {
         }
 
         // Validación 3: Límites médicos estandarizados (mg/dL)
-        // Valores menores de 20 o mayores de 600 configuran fallos de digitación o alertas críticas.
         if (valor < 20.0 || valor > 600.0) {
             etGlucoseValue.error = "El rango real debe estar entre 20 y 600 mg/dL"
             etGlucoseValue.requestFocus()
@@ -102,7 +123,7 @@ class Control_Glucosa : AppCompatActivity() {
     }
 
     /**
-     * Convierte el ID seleccionado del RadioGroup a un texto comprensible.
+     * Convierte el ID seleccionado a un texto comprensible.
      */
     private fun obtenerTipoRegistroTexto(radioId: Int): String {
         return when (radioId) {
@@ -126,6 +147,10 @@ class Control_Glucosa : AppCompatActivity() {
         // Limpiar el formulario para un próximo uso limpio
         etGlucoseValue.text.clear()
         etOptionalNotes.text.clear()
-        rgRecordType.check(R.id.rbAyunas) // Resetea la opción por defecto a 'Ayunas'
+
+        // Reseteo manual de los botones: marcamos únicamente 'Ayunas' y apagamos el resto
+        listaRadioButtons.forEach { boton ->
+            boton.isChecked = (boton.id == R.id.rbAyunas)
+        }
     }
 }
