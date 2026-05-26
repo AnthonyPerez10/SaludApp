@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">Mi primera App</string>
+
+    <!-- Menu Titles -->
+    <string name="menu_peso_title">Control de Peso</string>
+    <string name="menu_presion_title">Presión Arterial</string>
+    <string name="menu_glucosa_title">Control Glucosa</string>
+    <string name="menu_actividad_title">Actividad Física</string>
+    <string name="menu_hidratacion_title">Hidratación</string>
+    <string name="menu_medicina_title">Medicamentos</string>
+
+    <!-- Menu Descriptions -->
+    <string name="menu_peso_desc">IMC y Progreso</string>
+    <string name="menu_presion_desc">Sistólica/Diastólica</string>
+    <string name="menu_glucosa_desc">Niveles en Sangre</string>
+    <string name="menu_actividad_desc">Deporte y Hábitos</string>
+    <string name="menu_hidratacion_desc">Consumo de Agua</string>
+    <string name="menu_medicina_desc">Recordatorios</string>
 </resources>
