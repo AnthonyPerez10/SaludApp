@@ -34,26 +34,32 @@ class historial_de_peso : AppCompatActivity() {
         val imcRecibido = intent.getDoubleExtra("imc", 0.0)
 
         // Lista de registros
-        val listaRegistros = mutableListOf(
+        val listaRegistros = mutableListOf<RegistroPeso>()
 
-            RegistroPeso("Hoy", pesoRecibido, imcRecibido),
+        // Solo agregamos "Hoy" si llegaron valores reales (evita mostrar 0.0 si se abre directamente).
+        if (pesoRecibido > 0.0 && imcRecibido > 0.0) {
+            listaRegistros.add(RegistroPeso("Hoy", pesoRecibido, imcRecibido))
+        }
 
-            RegistroPeso("01/01/2024", 95.5, 42.4),
-            RegistroPeso("16/01/2024", 93.8, 31.8),
-            RegistroPeso("31/01/2024", 92.0, 31.2),
-            RegistroPeso("15/02/2024", 90.5, 30.7),
-            RegistroPeso("01/03/2024", 88.0, 29.8),
-            RegistroPeso("16/03/2024", 86.2, 29.2),
-            RegistroPeso("31/03/2024", 84.5, 28.6),
-            RegistroPeso("15/04/2024", 82.0, 27.8),
-            RegistroPeso("30/04/2024", 79.5, 26.9),
-            RegistroPeso("15/05/2024", 77.0, 26.1),
-            RegistroPeso("30/05/2024", 74.5, 25.2),
-            RegistroPeso("14/06/2024", 72.0, 24.4),
-            RegistroPeso("29/06/2024", 70.5, 23.9),
-            RegistroPeso("14/07/2024", 69.0, 23.4),
-            RegistroPeso("29/07/2024", 67.5, 22.9)
-
+        // Datos de ejemplo (mientras no exista persistencia real).
+        listaRegistros.addAll(
+            listOf(
+                RegistroPeso("01/01/2024", 95.5, 42.4),
+                RegistroPeso("16/01/2024", 93.8, 31.8),
+                RegistroPeso("31/01/2024", 92.0, 31.2),
+                RegistroPeso("15/02/2024", 90.5, 30.7),
+                RegistroPeso("01/03/2024", 88.0, 29.8),
+                RegistroPeso("16/03/2024", 86.2, 29.2),
+                RegistroPeso("31/03/2024", 84.5, 28.6),
+                RegistroPeso("15/04/2024", 82.0, 27.8),
+                RegistroPeso("30/04/2024", 79.5, 26.9),
+                RegistroPeso("15/05/2024", 77.0, 26.1),
+                RegistroPeso("30/05/2024", 74.5, 25.2),
+                RegistroPeso("14/06/2024", 72.0, 24.4),
+                RegistroPeso("29/06/2024", 70.5, 23.9),
+                RegistroPeso("14/07/2024", 69.0, 23.4),
+                RegistroPeso("29/07/2024", 67.5, 22.9)
+            )
         )
 
         val adapter = PesoAdapter(this, listaRegistros)
@@ -99,35 +105,17 @@ class historial_de_peso : AppCompatActivity() {
                 item.imc
             )
 
-            // Imagen según IMC
-            val nombreIcono = when {
-
-                item.imc < 18.5 -> "pesobajo"
-
-                item.imc < 25.0 -> "normal"
-
-                item.imc < 30.0 -> "sobrepeso"
-
-                item.imc < 35.0 -> "obesidad1"
-
-                item.imc < 40.0 -> "obesidad2"
-
-                else -> "obesidad3"
+            // Imagen según IMC (mapeo directo para evitar getIdentifier y fallos por nombres).
+            val resId = when {
+                item.imc < 18.5 -> R.drawable.bajopeso
+                item.imc < 25.0 -> R.drawable.normal
+                item.imc < 30.0 -> R.drawable.sobrepeso
+                item.imc < 35.0 -> R.drawable.obesidad1
+                item.imc < 40.0 -> R.drawable.obesidad2
+                else -> R.drawable.obesidad3
             }
 
-            // Buscar drawable
-            val resId = context.resources.getIdentifier(
-                nombreIcono,
-                "drawable",
-                context.packageName
-            )
-
-            // Mostrar imagen
-            if (resId != 0) {
-                ivIcono.setImageResource(resId)
-            } else {
-                ivIcono.setImageResource(android.R.drawable.ic_menu_info_details)
-            }
+            ivIcono.setImageResource(resId)
 
             return view
         }

@@ -3,7 +3,6 @@ package pa.ac.pa.miprimeraapp
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.graphics.Color
-import android.icu.util.Calendar
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -16,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import java.util.Calendar
 
 class Presion_arterial : AppCompatActivity() {
 

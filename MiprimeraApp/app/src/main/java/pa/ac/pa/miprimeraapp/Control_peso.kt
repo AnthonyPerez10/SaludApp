@@ -34,6 +34,9 @@ class Control_peso : AppCompatActivity() {
         val tvGrasa = findViewById<TextView>(R.id.tvGrasa)
         val tvClasificacion = findViewById<TextView>(R.id.tvClasificacion)
 
+        // Evita abrir el historial sin haber calculado antes.
+        btnHistorial.isEnabled = false
+
         // Cambio dinámico de hints
         swPeso.setOnCheckedChangeListener { _, isChecked ->
             etPeso.hint = if (isChecked) "Peso (Lb)" else "Peso (Kg)"
@@ -128,6 +131,9 @@ class Control_peso : AppCompatActivity() {
             tvGrasa.text = String.format("%.1f%%", grasa)
             tvClasificacion.text = categorizarIMC(imc)
 
+            // Habilita historial una vez hay resultados calculados.
+            btnHistorial.isEnabled = true
+
             Toast.makeText(
                 this,
                 "Cálculo realizado",
@@ -137,6 +143,14 @@ class Control_peso : AppCompatActivity() {
 
         // BOTÓN HISTORIAL
         btnHistorial.setOnClickListener {
+            if (ultimoIMC == 0.0 || ultimoPeso == 0.0) {
+                Toast.makeText(
+                    this,
+                    "Primero calcula tu IMC para ver el historial",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
             val intent = Intent(
                 this,
                 historial_de_peso::class.java

@@ -8,4 +8,21 @@
     <color name="peso_background">#F4F6F9</color>
     <color name="peso_card_bg">#FFFFFF</color>
     <color name="peso_save_green">#2E7D32</color>
+
+    <!-- Existing hardcoded UI colors (values preserved) -->
+    <color name="ui_menu_background">#E4EEF7</color>
+    <color name="ui_weight_background">#F0F4F8</color>
+    <color name="ui_history_background">#F2F4F8</color>
+    <color name="ui_history_header">#1A2B5F</color>
+    <color name="ui_text_secondary_666">#666666</color>
+    <color name="ui_hint_grey_9e">#9E9E9E</color>
+    <color name="ui_divider_e0">#E0E0E0</color>
+    <color name="ui_list_divider_dde">#DDE1EA</color>
+    <color name="ui_history_item_text_secondary">#6B7280</color>
+
+    <!-- Splash background (value preserved) -->
+    <color name="ui_splash_background">#FEE6F0F8</color>
+
+    <!-- Weight screen title color (value preserved; distinct from peso_primary_blue) -->
+    <color name="ui_weight_title_blue">#1A4375</color>
 </resources>

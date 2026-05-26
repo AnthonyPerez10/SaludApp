@@ -6,47 +6,57 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/peso_background"
+    android:background="@color/ui_weight_background"
     tools:context=".Presion_arterial">
-
-    <LinearLayout
-        android:id="@+id/topBar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/peso_primary_blue"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_view"
-            app:tint="@color/white" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="Registro de Presión Arterial"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="24dp">
+
+            <!-- Header (mismo patrón que Control de Peso) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/peso_card_bg">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Registro de Presión Arterial"
+                        android:textColor="@color/peso_primary_blue"
+                        android:textSize="28sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="REGISTRO: Selecciona fecha y hora"
+                        android:textColor="@color/peso_gray_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -54,7 +64,7 @@
                 android:layout_marginBottom="16dp"
                 app:cardBackgroundColor="@color/peso_card_bg"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -81,17 +91,18 @@
                         <Button
                             android:id="@+id/btnFecha"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="56dp"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
-                            android:backgroundTint="@color/peso_background"
+                            android:backgroundTint="@color/ui_weight_background"
                             android:textColor="@color/black"
                             android:textSize="12sp"
                             android:text="Seleccionar Fecha:\n--/--/----"
                             android:drawableLeft="@android:drawable/ic_menu_month"
                             android:textAllCaps="false"
                             android:gravity="center"
-                            android:padding="8dp" />
+                            android:padding="8dp"
+                            app:cornerRadius="12dp" />
 
                         <LinearLayout
                             android:id="@+id/btnHora"
@@ -285,14 +296,14 @@
 
                     <EditText
                         android:id="@+id/etNotas"
+                        style="@style/EditTextRounded"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Escribe algún síntoma o detalle..."
                         android:inputType="textMultiLine"
                         android:minLines="3"
                         android:gravity="top|start"
-                        android:textColor="@color/black"
-                        android:background="@android:drawable/edit_text"/>
+                        android:textColor="@color/black" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -305,7 +316,8 @@
                 android:text="ANALIZAR MEDICIÓN"
                 android:textColor="@color/white"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardResumen"

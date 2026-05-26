@@ -3,7 +3,6 @@ package pa.ac.pa.miprimeraapp
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView // <-- 1. IMPORTANTE: Importar TextView
 import android.widget.Toast
@@ -25,9 +24,6 @@ class Control_Glucosa : AppCompatActivity() {
 
     // 2. Variable para el TextView del resumen previo
     private lateinit var tvPreviousSummary: TextView
-
-    // Lista global para manejar los RadioButtons anidados manualmente
-    private lateinit var listaRadioButtons: List<RadioButton>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,27 +52,10 @@ class Control_Glucosa : AppCompatActivity() {
 
         // 3. Inicializar el componente del XML
         tvPreviousSummary = findViewById(R.id.tvPreviousSummary)
-
-        // Inicializamos los RadioButtons individuales que están ocultos dentro de los LinearLayouts
-        listaRadioButtons = listOf(
-            findViewById(R.id.rbAyunas),
-            findViewById(R.id.rbAntesAlmuerzo),
-            findViewById(R.id.rbDespuesAlmuerzo),
-            findViewById(R.id.rbCena)
-        )
     }
 
     private fun configurarListeners() {
-        // Simular el comportamiento del RadioGroup manualmente para cada botón
-        listaRadioButtons.forEach { rb ->
-            rb.setOnClickListener { vistaClickeada ->
-                listaRadioButtons.forEach { boton ->
-                    // Solo se queda marcado el botón que el usuario acaba de presionar
-                    boton.isChecked = (boton.id == vistaClickeada.id)
-                }
-            }
-        }
-
+        // RadioGroup ya garantiza que solo un RadioButton esté seleccionado.
         btnSaveRecord.setOnClickListener {
             ejecutarRegistro()
         }
@@ -86,7 +65,7 @@ class Control_Glucosa : AppCompatActivity() {
         val glucosaTexto = etGlucoseValue.text.toString().trim()
         val notasOpcionales = etOptionalNotes.text.toString().trim()
 
-        val selectedRadioId = listaRadioButtons.find { it.isChecked }?.id ?: -1
+        val selectedRadioId = rgRecordType.checkedRadioButtonId
         val tipoRegistro = obtenerTipoRegistroTexto(selectedRadioId)
 
         if (!validarGlucosa(glucosaTexto)) {
@@ -153,8 +132,6 @@ class Control_Glucosa : AppCompatActivity() {
         etOptionalNotes.text.clear()
 
         // Reseteo manual de los botones
-        listaRadioButtons.forEach { boton ->
-            boton.isChecked = (boton.id == R.id.rbAyunas)
-        }
+        rgRecordType.check(R.id.rbAyunas)
     }
 }

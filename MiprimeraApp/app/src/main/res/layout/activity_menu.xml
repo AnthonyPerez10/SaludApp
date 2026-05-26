@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E4EEF7"
+    android:background="@color/ui_menu_background"
     tools:context=".activity_menu">
 
     <ImageView
@@ -74,7 +74,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Registro, IMC, meta y progreso"
-                    android:textColor="#666"
+                    android:textColor="@color/ui_text_secondary_666"
                     android:textSize="11sp" />
 
             </LinearLayout>
@@ -122,7 +122,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Registro sistolíca, diastólica y historial.  "
-                    android:textColor="#666"
+                    android:textColor="@color/ui_text_secondary_666"
                     android:textSize="11sp" />
 
             </LinearLayout>
@@ -170,7 +170,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Niveles en Sangre y Registro por Fecha. "
-                    android:textColor="#666"
+                    android:textColor="@color/ui_text_secondary_666"
                     android:textSize="11sp" />
 
             </LinearLayout>
@@ -218,7 +218,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Tipos, duración y habitos saludables. "
-                    android:textColor="#666"
+                    android:textColor="@color/ui_text_secondary_666"
                     android:textSize="11sp" />
 
             </LinearLayout>
@@ -266,7 +266,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Consumo diario, metas y progresos. "
-                    android:textColor="#666"
+                    android:textColor="@color/ui_text_secondary_666"
                     android:textSize="11sp" />
 
             </LinearLayout>
@@ -315,7 +315,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Tiempos, horarios y organización personal.  "
-                    android:textColor="#666"
+                    android:textColor="@color/ui_text_secondary_666"
                     android:textSize="11sp" />
 
             </LinearLayout>
