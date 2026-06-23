@@ -1,27 +1,521 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/ui_weight_background"
     tools:context=".Medicamento_Activity">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#E4EEF7 ">
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pagina principal de medicamentos."
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- HEADER BAR (mismo patrón que Control de Peso) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="@color/peso_card_bg"
+                android:layout_marginBottom="24dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:id="@+id/txtVTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Control de Medicación"
+                            android:textColor="@color/ui_weight_title_blue"
+                            android:textSize="32sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+
+                        <TextView
+                            android:id="@+id/tvDateTimeInfo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="REGISTRO: Hoy - Martes, 19 Octubre"
+                            android:textColor="@color/peso_gray_text"
+                            android:textSize="14sp"
+                            android:textStyle="bold"/>
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/btnBack"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@android:drawable/ic_menu_revert"
+                        android:rotation="180"
+                        app:tint="@color/ui_weight_title_blue"
+                        android:contentDescription="Regresar" />
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- CALENDARIO SEMANAL HORIZONTAL -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="12dp">
+
+                    <!-- Lunes -->
+                    <LinearLayout
+                        android:id="@+id/layoutMon"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvMonDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="L"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotMon"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Martes -->
+                    <LinearLayout
+                        android:id="@+id/layoutTue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvTueDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="M"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotTue"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Miércoles -->
+                    <LinearLayout
+                        android:id="@+id/layoutWed"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvWedDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="M"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotWed"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Jueves -->
+                    <LinearLayout
+                        android:id="@+id/layoutThu"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvThuDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="J"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotThu"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Viernes -->
+                    <LinearLayout
+                        android:id="@+id/layoutFri"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvFriDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="V"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotFri"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Sábado -->
+                    <LinearLayout
+                        android:id="@+id/layoutSat"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvSatDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="S"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotSat"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                    <!-- Domingo -->
+                    <LinearLayout
+                        android:id="@+id/layoutSun"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="4dp">
+                        <TextView
+                            android:id="@+id/tvSunDay"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:text="D"
+                            android:textColor="#112E52"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <View
+                            android:id="@+id/dotSun"
+                            android:layout_width="6dp"
+                            android:layout_height="6dp"
+                            android:background="#B0BEC5"
+                            android:layout_marginTop="4dp" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- SECCIÓN DEL DÍA / CRONOLOGÍA (TIMELINE) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Horarios de Toma (Hoy)"
+                android:textColor="@color/peso_primary_blue"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="4dp" />
+
+            <LinearLayout
+                android:id="@+id/layoutTimeline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+                <!-- Se poblará dinámicamente desde el código con tarjetas de medicamento -->
+                <TextView
+                    android:id="@+id/tvNoMedsMsg"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="No tienes medicamentos registrados para hoy."
+                    android:textColor="@color/peso_gray_text"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- ALERTAS DE INVENTARIO (FARMACIA) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardInventoryAlerts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@color/white">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠️ Inventario de Farmacia Crítico"
+                        android:textColor="#C62828"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="8dp"/>
+                    
+                    <LinearLayout
+                        android:id="@+id/layoutInventoryAlertList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <!-- Las alertas con barras rojas se poblarán dinámicamente -->
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- FORMULARIO DE REGISTRO (AÑADIR MEDICAMENTO) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Registrar Nuevo Medicamento"
+                        android:textColor="@color/peso_primary_blue"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Nombre del medicamento -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nombre del Medicamento"
+                        android:textColor="@color/peso_gray_text"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp"/>
+                    <EditText
+                        android:id="@+id/etMedName"
+                        style="@style/EditTextRounded"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Ej. Paracetamol"
+                        android:inputType="text"
+                        android:maxLength="40"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Dosis -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.2"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Dosis Cantidad"
+                                android:textColor="@color/peso_gray_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <EditText
+                                android:id="@+id/etMedDoseQty"
+                                style="@style/EditTextRounded"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:hint="Ej. 1"
+                                android:inputType="number" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1.8"
+                            android:orientation="vertical"
+                            android:layout_marginStart="8dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Presentación"
+                                android:textColor="@color/peso_gray_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <Spinner
+                                android:id="@+id/spinnerDoseType"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:background="@drawable/input_rounf" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Frecuencia -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Frecuencia de Toma"
+                        android:textColor="@color/peso_gray_text"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="4dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerFrequency"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/input_rounf" />
+
+                    <!-- Duracion y Stock Inicial -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp">
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Duración (Días)"
+                                android:textColor="@color/peso_gray_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <EditText
+                                android:id="@+id/etDurationDays"
+                                style="@style/EditTextRounded"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:hint="Ej. 7 (0 = Crónico)"
+                                android:inputType="number" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="8dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Caja Inicial (Dosis)"
+                                android:textColor="@color/peso_gray_text"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="4dp"/>
+                            <EditText
+                                android:id="@+id/etInventoryInitial"
+                                style="@style/EditTextRounded"
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:hint="Ej. 30"
+                                android:inputType="number" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Guardar -->
+                    <Button
+                        android:id="@+id/btnSaveMed"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:text="Registrar Medicamento"
+                        android:textAllCaps="false"
+                        android:backgroundTint="@color/peso_primary_blue"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
