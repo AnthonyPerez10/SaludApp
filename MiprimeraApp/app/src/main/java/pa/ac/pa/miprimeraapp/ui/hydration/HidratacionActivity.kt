@@ -9,18 +9,30 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.data.SaludAppRepository
+import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
 import pa.ac.pa.miprimeraapp.ui.custom.WaterWaveView
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Actividad para registrar el consumo diario de agua y calcular metas personalizadas.
+ * Los datos se persisten de manera limpia a través del repositorio central.
+ */
 class HidratacionActivity : AppCompatActivity() {
+
+    // Repositorio central de datos
+    private lateinit var repository: SaludAppRepository
 
     // Vistas principales
     private lateinit var tvWaterCounter: TextView
     private lateinit var waterWaveView: WaterWaveView
     private lateinit var tvProgressPercentage: TextView
     private lateinit var tvSmartTip: TextView
-    private lateinit var btnBack: View
+    
+    // KPIs del panel de estadísticas
+    private lateinit var tvWaterStreakKPI: TextView
+    private lateinit var tvWaterTodayKPI: TextView
 
     // Registro Rápido
     private lateinit var btnLog250: View
@@ -34,7 +46,7 @@ class HidratacionActivity : AppCompatActivity() {
     private lateinit var sbCustomAmount: SeekBar
     private lateinit var btnConfirmCustomLog: Button
 
-    // Estadísticas de Hidratación Semanal
+    // Estadísticas de Hidratación Semanal (Gráfico de Barras)
     private lateinit var barWaterL: View
     private lateinit var barWaterM: View
     private lateinit var barWaterMi: View
@@ -51,9 +63,9 @@ class HidratacionActivity : AppCompatActivity() {
     private lateinit var spinnerUserActivity: Spinner
     private lateinit var btnCalculateGoal: Button
 
-    // Estado
+    // Estado local
     private var waterToday = 0
-    private var waterGoal = 2000 // default 2 Litros
+    private var waterGoal = 2000 // Predeterminado de 2 Litros
 
     private val activityLevels = arrayOf("Sedentario", "Moderado", "Muy Activo")
 
@@ -61,6 +73,8 @@ class HidratacionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_hidratacion)
+
+        repository = SaludAppRepositoryImpl(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -74,7 +88,7 @@ class HidratacionActivity : AppCompatActivity() {
         setupListeners()
         actualizarUI()
 
-        // Set dynamic date in header
+        // Fecha dinámica en el encabezado
         val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
         val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
         tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
@@ -85,7 +99,10 @@ class HidratacionActivity : AppCompatActivity() {
         waterWaveView = findViewById(R.id.waterWaveView)
         tvProgressPercentage = findViewById(R.id.tvProgressPercentage)
         tvSmartTip = findViewById(R.id.tvSmartTip)
-        btnBack = findViewById(R.id.btnBack)
+
+        // KPIs de estadísticas
+        tvWaterStreakKPI = findViewById(R.id.tvWaterStreakKPI)
+        tvWaterTodayKPI = findViewById(R.id.tvWaterTodayKPI)
 
         btnLog250 = findViewById(R.id.btnLog250)
         btnLog500 = findViewById(R.id.btnLog500)
@@ -120,26 +137,20 @@ class HidratacionActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        btnBack.setOnClickListener { finish() }
-
         // Botones rápidos
         btnLog250.setOnClickListener { registrarAgua(250) }
         btnLog500.setOnClickListener { registrarAgua(500) }
         btnLog750.setOnClickListener { registrarAgua(750) }
 
-        // Botón Personalizado
+        // Botón Personalizado (Alternar panel)
         btnLogCustom.setOnClickListener {
-            if (layoutCustomLog.visibility == View.VISIBLE) {
-                layoutCustomLog.visibility = View.GONE
-            } else {
-                layoutCustomLog.visibility = View.VISIBLE
-            }
+            layoutCustomLog.visibility = if (layoutCustomLog.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         }
 
         // SeekBar
         sbCustomAmount.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val roundedProgress = (progress / 10) * 10 // Redondear a múltiplos de 10
+                val roundedProgress = (progress / 10) * 10
                 tvCustomAmount.text = "$roundedProgress ml"
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -161,16 +172,22 @@ class HidratacionActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Registra una cantidad específica de consumo de agua, actualizando el estado,
+     * persistiendo en SharedPreferences y refrescando los KPIs de UI.
+     */
     private fun registrarAgua(cantidad: Int) {
         waterToday += cantidad
-        if (waterToday > 10000) waterToday = 10000 // Limite de seguridad
+        if (waterToday > 10000) waterToday = 10000 // Límite de seguridad fisiológica
 
         guardarDatos()
         actualizarUI()
-        
         Toast.makeText(this, "+$cantidad ml de agua registrados", Toast.LENGTH_SHORT).show()
     }
 
+    /**
+     * Calcula la meta diaria recomendada por la OMS adaptada a la actividad y género.
+     */
     private fun calcularMetaPersonalizada() {
         val pesoStr = etUserWeight.text.toString().trim()
         if (pesoStr.isEmpty()) {
@@ -189,86 +206,65 @@ class HidratacionActivity : AppCompatActivity() {
         val esMasculino = rbMale.isChecked
         val actividad = spinnerUserActivity.selectedItem.toString()
 
-        // Fórmula inteligente:
-        // Peso * 35 ml (base recomendada por la OMS)
+        // Fórmula inteligente: Peso * 35 ml (base recomendada por la OMS)
         var metaRecomendada = (peso * 35).toInt()
 
-        // Nivel de actividad física
+        // Ajustes por actividad y género
         metaRecomendada += when (actividad) {
             "Moderado" -> 350
             "Muy Activo" -> 700
             else -> 0
         }
-
-        // Género
         metaRecomendada += if (esMasculino) 250 else 0
 
-        // Límite de seguridad
+        // Límites razonables
         if (metaRecomendada < 1000) metaRecomendada = 1000
         if (metaRecomendada > 6000) metaRecomendada = 6000
 
         waterGoal = metaRecomendada
         guardarDatos()
+
+        // Guardar parámetros del cálculo
+        repository.saveHydrationWeight(peso)
+        repository.saveHydrationIsMale(esMasculino)
+        repository.saveHydrationActivityPos(spinnerUserActivity.selectedItemPosition)
+
         actualizarUI()
-
-        // Guardar valores del formulario
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-        prefs.edit().apply {
-            putFloat("hid_user_weight", peso)
-            putBoolean("hid_user_is_male", esMasculino)
-            putInt("hid_user_activity_pos", spinnerUserActivity.selectedItemPosition)
-            apply()
-        }
-
-        Toast.makeText(this, "Nueva Meta Calculada: $waterGoal ml", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Meta recomendada calculada: $waterGoal ml", Toast.LENGTH_LONG).show()
     }
 
     private fun cargarDatos() {
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-
-        // Verificar cambio de día
+        // Verificar si cambió de día
         val hoyStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val diaGuardado = prefs.getString("hid_dia_actual", "")
+        val diaGuardado = repository.getHydrationCurrentDay()
 
         if (diaGuardado != hoyStr) {
-            // Guardar meta cumplida de ayer en el historial de la semana antes de reiniciar
-            guardarMetaAyer(prefs, diaGuardado)
-            
+            // Guardar meta de ayer antes de reiniciar
+            guardarMetaAyer(diaGuardado)
             waterToday = 0
-            prefs.edit()
-                .putInt("hid_agua_hoy", 0)
-                .putString("hid_dia_actual", hoyStr)
-                .apply()
+            repository.saveWaterToday(0)
+            repository.saveHydrationCurrentDay(hoyStr)
         } else {
-            waterToday = prefs.getInt("hid_agua_hoy", 0)
+            waterToday = repository.getWaterToday()
         }
 
-        waterGoal = prefs.getInt("hid_meta_agua", 2000)
+        waterGoal = repository.getWaterGoal()
 
-        // Rellenar formulario si ya existían datos
-        if (prefs.contains("hid_user_weight")) {
-            val peso = prefs.getFloat("hid_user_weight", 70f)
+        // Rellenar formulario si ya existían datos calculados previamente
+        val peso = repository.getHydrationWeight()
+        if (peso > 0) {
             etUserWeight.setText(peso.toString())
-            
-            val esMasculino = prefs.getBoolean("hid_user_is_male", true)
-            if (esMasculino) {
-                rbMale.isChecked = true
-            } else {
-                rbFemale.isChecked = true
-            }
-
-            val actPos = prefs.getInt("hid_user_activity_pos", 0)
-            spinnerUserActivity.setSelection(actPos)
+            val esMasculino = repository.getHydrationIsMale()
+            if (esMasculino) rbMale.isChecked = true else rbFemale.isChecked = true
+            spinnerUserActivity.setSelection(repository.getHydrationActivityPos())
         }
     }
 
     private fun guardarDatos() {
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.putInt("hid_agua_hoy", waterToday)
-        editor.putInt("hid_meta_agua", waterGoal)
+        repository.saveWaterToday(waterToday)
+        repository.saveWaterGoal(waterGoal)
 
-        // Registrar cumplimiento de hoy
+        // Registrar cumplimiento del día de la semana actual
         val calendar = Calendar.getInstance()
         val dayIndex = when(calendar.get(Calendar.DAY_OF_WEEK)) {
             Calendar.MONDAY -> 0
@@ -280,11 +276,10 @@ class HidratacionActivity : AppCompatActivity() {
             Calendar.SUNDAY -> 6
             else -> 0
         }
-        editor.putBoolean("hid_cumple_dia_$dayIndex", waterToday >= waterGoal)
-        editor.apply()
+        repository.saveWaterHistoryDay(dayIndex, waterToday >= waterGoal)
     }
 
-    private fun guardarMetaAyer(prefs: android.content.SharedPreferences, diaAyer: String?) {
+    private fun guardarMetaAyer(diaAyer: String?) {
         if (diaAyer.isNullOrEmpty()) return
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val cal = Calendar.getInstance()
@@ -302,9 +297,7 @@ class HidratacionActivity : AppCompatActivity() {
                     Calendar.SUNDAY -> 6
                     else -> 0
                 }
-                val aguaAyer = prefs.getInt("hid_agua_hoy", 0)
-                val metaAyer = prefs.getInt("hid_meta_agua", 2000)
-                prefs.edit().putBoolean("hid_cumple_dia_$dayIndex", aguaAyer >= metaAyer).apply()
+                repository.saveWaterHistoryDay(dayIndex, waterToday >= waterGoal)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -320,50 +313,39 @@ class HidratacionActivity : AppCompatActivity() {
         val pct = (ratio * 100).toInt()
         tvProgressPercentage.text = "$pct% Completado"
 
-        // Recordatorios Inteligentes Basados en Progreso y Hora
-        val calendar = Calendar.getInstance()
-        val hora = calendar.get(Calendar.HOUR_OF_DAY)
-
-        val tip: String
-        when {
-            pct >= 100 -> {
-                tip = "🏆 ¡Felicidades! Has completado el 100% de tu meta diaria. Tu cuerpo te lo agradece."
-            }
-            hora >= 18 && pct < 40 -> {
-                tip = "⚠️ Ya está anocheciendo y solo llevas el $pct% de tu meta. Intenta tomar 1 o 2 vasos más antes de dormir."
-            }
-            hora >= 12 && pct < 25 -> {
-                tip = "🔔 Ya es mediodía y solo llevas el $pct% de tu meta. ¡Tómate un vaso de agua ahora mismo!"
-            }
-            pct < 10 -> {
-                tip = "💧 ¡Empieza a sumar! Mantener un vaso de agua en tu escritorio te recordará beber constantemente."
-            }
-            pct in 50..85 -> {
-                tip = "👍 ¡Buen progreso! Estás cerca de la meta. Un vaso más después de tu almuerzo o ejercicio ayudará."
-            }
-            else -> {
-                tip = "✅ ¡Buen trabajo! Continúa bebiendo agua en pequeños sorbos a lo largo de la tarde."
+        // KPIs de panel de estadísticas
+        tvWaterTodayKPI.text = "$waterToday ml"
+        
+        // Calcular racha de días cumplidos de esta semana (0 a 7)
+        var streakCount = 0
+        for (i in 0..6) {
+            if (repository.getWaterHistoryDay(i)) {
+                streakCount++
             }
         }
+        tvWaterStreakKPI.text = "$streakCount / 7 días"
 
+        // Mensaje y consejo inteligente basado en el progreso
+        val calendar = Calendar.getInstance()
+        val hora = calendar.get(Calendar.HOUR_OF_DAY)
+        val tip = when {
+            pct >= 100 -> "🏆 ¡Felicidades! Has completado la meta del día. Tu cuerpo está óptimamente hidratado."
+            hora >= 18 && pct < 40 -> "⚠️ Ya anochece y llevas solo $pct%. Intenta beber 1 o 2 vasos más antes de dormir."
+            hora >= 12 && pct < 25 -> "🔔 Mediodía y llevas solo $pct%. ¡Toma un vaso de agua ahora mismo!"
+            pct < 10 -> "💧 ¡Empieza a sumar! Mantén un vaso cerca para recordarte beber constantemente."
+            pct in 50..85 -> "👍 ¡Buen progreso! Ya falta poco para alcanzar tu meta de hoy."
+            else -> "✅ ¡Buen trabajo! Sigue hidratándote a pequeños sorbos a lo largo del día."
+        }
         tvSmartTip.text = tip
 
-        // Actualizar barras de historial semanal de hidratación
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
+        // Actualizar barras de historial semanal
         val bars = arrayOf(barWaterL, barWaterM, barWaterMi, barWaterJ, barWaterV, barWaterS, barWaterD)
-        
+        val density = resources.displayMetrics.density
         for (i in 0..6) {
-            val cumple = prefs.getBoolean("hid_cumple_dia_$i", false)
+            val cumple = repository.getWaterHistoryDay(i)
             val bar = bars[i]
-            
-            if (cumple) {
-                bar.setBackgroundColor(android.graphics.Color.parseColor("#0288D1")) // Azul agua meta
-            } else {
-                bar.setBackgroundColor(android.graphics.Color.parseColor("#B0BEC5")) // Gris claro
-            }
-
+            bar.setBackgroundColor(android.graphics.Color.parseColor(if (cumple) "#0288D1" else "#B0BEC5"))
             val heightDp = if (cumple) 90L else 30L
-            val density = resources.displayMetrics.density
             val params = bar.layoutParams
             params.height = (heightDp * density).toInt()
             bar.layoutParams = params

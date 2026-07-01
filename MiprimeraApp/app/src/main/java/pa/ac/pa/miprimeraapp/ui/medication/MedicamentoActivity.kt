@@ -1,6 +1,7 @@
 package pa.ac.pa.miprimeraapp.ui.medication
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,27 +11,23 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import org.json.JSONArray
-import org.json.JSONObject
 import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.data.Medication
+import pa.ac.pa.miprimeraapp.data.SaludAppRepository
+import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Actividad para la gestión de tratamientos médicos, control de tomas diarias y farmacia de inventario.
+ * Utiliza SaludAppRepository para centralizar la persistencia temporal.
+ */
 class MedicamentoActivity : AppCompatActivity() {
 
-    // Modelos de datos
-    data class Medication(
-        val id: String,
-        val name: String,
-        val doseQty: Int,
-        val doseType: String, // "Cápsula", "Pastilla", "Jarabe"
-        val frequency: String, // "Cada 8 horas", "Una vez al día", "Antes de dormir"
-        val durationDays: Int, // 0 = crónico
-        val initialBoxSize: Int,
-        var inventory: Int,
-        val dateRegistered: String // "yyyy-MM-dd"
-    )
+    // Repositorio modular de datos
+    private lateinit var repository: SaludAppRepository
 
+    // Modelo de interfaz local para agrupar medicamento con horario
     data class MedicationSlot(
         val med: Medication,
         val timeLabel: String,
@@ -45,7 +42,10 @@ class MedicamentoActivity : AppCompatActivity() {
     private lateinit var etDurationDays: EditText
     private lateinit var etInventoryInitial: EditText
     private lateinit var btnSaveMed: Button
-    private lateinit var btnBack: View
+
+    // KPIs del panel de estadísticas
+    private lateinit var tvMedRegisteredKPI: TextView
+    private lateinit var tvMedLowStockKPI: TextView
 
     // Contenedores dinámicos
     private lateinit var layoutTimeline: LinearLayout
@@ -72,7 +72,7 @@ class MedicamentoActivity : AppCompatActivity() {
 
     // Listas locales
     private var medications = mutableListOf<Medication>()
-    private var takenSlotsToday = mutableSetOf<String>() // Set de strings formato: "medId_timeLabel"
+    private var takenSlotsToday = mutableSetOf<String>() // Estructura: "medId_timeLabel"
 
     // Opciones spinners
     private val doseTypes = arrayOf("Cápsula", "Pastilla redonda", "Jarabe / Gotas")
@@ -87,6 +87,8 @@ class MedicamentoActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_medicamento)
 
+        repository = SaludAppRepositoryImpl(this)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -100,7 +102,7 @@ class MedicamentoActivity : AppCompatActivity() {
         resaltarDiaActual()
         actualizarUI()
 
-        // Set dynamic date in header
+        // Fecha dinámica en el encabezado
         val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
         val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
         tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
@@ -114,7 +116,10 @@ class MedicamentoActivity : AppCompatActivity() {
         etDurationDays = findViewById(R.id.etDurationDays)
         etInventoryInitial = findViewById(R.id.etInventoryInitial)
         btnSaveMed = findViewById(R.id.btnSaveMed)
-        btnBack = findViewById(R.id.btnBack)
+
+        // KPIs de estadísticas
+        tvMedRegisteredKPI = findViewById(R.id.tvMedRegisteredKPI)
+        tvMedLowStockKPI = findViewById(R.id.tvMedLowStockKPI)
 
         layoutTimeline = findViewById(R.id.layoutTimeline)
         tvNoMedsMsg = findViewById(R.id.tvNoMedsMsg)
@@ -149,72 +154,39 @@ class MedicamentoActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        btnBack.setOnClickListener { finish() }
-
         btnSaveMed.setOnClickListener {
             registrarNuevoMedicamento()
         }
     }
 
+    /**
+     * Valida la entrada del usuario y registra un nuevo medicamento, guardándolo
+     * a través del repositorio y actualizando los KPIs e interfaces en tiempo real.
+     */
     private fun registrarNuevoMedicamento() {
         val nombre = etMedName.text.toString().trim()
         val dosisCantStr = etMedDoseQty.text.toString().trim()
         val duracionStr = etDurationDays.text.toString().trim()
         val inventarioStr = etInventoryInitial.text.toString().trim()
 
-        // Validaciones
-        if (nombre.isEmpty()) {
-            etMedName.error = "Ingresa el nombre del medicamento"
-            etMedName.requestFocus()
+        if (nombre.isEmpty() || dosisCantStr.isEmpty() || duracionStr.isEmpty() || inventarioStr.isEmpty()) {
+            Toast.makeText(this, "Completa todos los campos del formulario", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (dosisCantStr.isEmpty()) {
-            etMedDoseQty.error = "Ingresa la dosis"
-            etMedDoseQty.requestFocus()
-            return
-        }
-        val dosisCant = dosisCantStr.toIntOrNull() ?: 0
-        if (dosisCant <= 0) {
-            etMedDoseQty.error = "Dosis debe ser mayor a 0"
-            etMedDoseQty.requestFocus()
-            return
-        }
-
-        if (duracionStr.isEmpty()) {
-            etDurationDays.error = "Ingresa los días de tratamiento"
-            etDurationDays.requestFocus()
-            return
-        }
-        val duracion = duracionStr.toIntOrNull() ?: -1
-        if (duracion < 0) {
-            etDurationDays.error = "Ingresa 0 o más días"
-            etDurationDays.requestFocus()
-            return
-        }
-
-        if (inventarioStr.isEmpty()) {
-            etInventoryInitial.error = "Ingresa la cantidad inicial"
-            etInventoryInitial.requestFocus()
-            return
-        }
+        val dosisCant = dosisCantStr.toIntOrNull() ?: 1
+        val duracion = duracionStr.toIntOrNull() ?: 0
         val inventario = inventarioStr.toIntOrNull() ?: 0
-        if (inventario <= 0) {
-            etInventoryInitial.error = "Debe tener al menos una dosis"
-            etInventoryInitial.requestFocus()
-            return
-        }
 
-        val presentacion = spinnerDoseType.selectedItem.toString()
-        val frecuencia = spinnerFrequency.selectedItem.toString()
+        val idUnique = UUID.randomUUID().toString()
         val hoyStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
         val nuevoMed = Medication(
-            id = UUID.randomUUID().toString(),
+            id = idUnique,
             name = nombre,
             doseQty = dosisCant,
-            doseType = presentacion,
-            frequency = frecuencia,
+            doseType = spinnerDoseType.selectedItem.toString(),
+            frequency = spinnerFrequency.selectedItem.toString(),
             durationDays = duracion,
             initialBoxSize = inventario,
             inventory = inventario,
@@ -222,23 +194,38 @@ class MedicamentoActivity : AppCompatActivity() {
         )
 
         medications.add(nuevoMed)
-        guardarMedicamentos()
-        actualizarUI()
+        repository.saveMedications(medications)
 
-        // Limpiar campos
+        // Limpiar formulario
         etMedName.text.clear()
         etMedDoseQty.text.clear()
         etDurationDays.text.clear()
         etInventoryInitial.text.clear()
+        spinnerDoseType.setSelection(0)
+        spinnerFrequency.setSelection(0)
 
-        Toast.makeText(this, "Medicamento '$nombre' registrado con éxito", Toast.LENGTH_LONG).show()
+        actualizarUI()
+        Toast.makeText(this, "Medicamento registrado con éxito", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun cargarDatos() {
+        medications.clear()
+        medications.addAll(repository.getMedications())
+
+        val hoyStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val diaGuardado = repository.getMedicationCurrentDay()
+
+        takenSlotsToday.clear()
+        if (diaGuardado != hoyStr) {
+            repository.saveMedicationCurrentDay(hoyStr)
+            repository.saveTakenSlotsToday(emptySet())
+        } else {
+            takenSlotsToday.addAll(repository.getTakenSlotsToday())
+        }
     }
 
     private fun resaltarDiaActual() {
         val calendar = Calendar.getInstance()
-        val dayViews = arrayOf(tvMonDay, tvTueDay, tvWedDay, tvThuDay, tvFriDay, tvSatDay, tvSunDay)
-        
-        // Domingo en Android es 1, Lunes es 2... Sábado es 7
         val currentDayIndex = when (calendar.get(Calendar.DAY_OF_WEEK)) {
             Calendar.MONDAY -> 0
             Calendar.TUESDAY -> 1
@@ -250,7 +237,7 @@ class MedicamentoActivity : AppCompatActivity() {
             else -> 0
         }
 
-        // Resaltar día de hoy con círculo
+        val dayViews = arrayOf(tvMonDay, tvTueDay, tvWedDay, tvThuDay, tvFriDay, tvSatDay, tvSunDay)
         for (i in dayViews.indices) {
             if (i == currentDayIndex) {
                 dayViews[i].setBackgroundResource(R.drawable.circle_highlight)
@@ -262,84 +249,33 @@ class MedicamentoActivity : AppCompatActivity() {
         }
     }
 
-    private fun cargarDatos() {
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-
-        // Cargar lista de medicamentos
-        medications.clear()
-        val jsonStr = prefs.getString("med_list_json", null)
-        if (!jsonStr.isNullOrEmpty()) {
-            try {
-                val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
-                    medications.add(
-                        Medication(
-                            id = obj.getString("id"),
-                            name = obj.getString("name"),
-                            doseQty = obj.getInt("doseQty"),
-                            doseType = obj.getString("doseType"),
-                            frequency = obj.getString("frequency"),
-                            durationDays = obj.getInt("durationDays"),
-                            initialBoxSize = obj.getInt("initialBoxSize"),
-                            inventory = obj.getInt("inventory"),
-                            dateRegistered = obj.getString("dateRegistered")
-                        )
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
-        // Cargar tomas de hoy (y resetear si cambió el día)
-        val hoyStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val diaGuardado = prefs.getString("med_dia_actual", "")
-
-        takenSlotsToday.clear()
-        if (diaGuardado != hoyStr) {
-            prefs.edit()
-                .putString("med_dia_actual", hoyStr)
-                .putStringSet("med_tomas_hoy", emptySet())
-                .apply()
-        } else {
-            val savedSet = prefs.getStringSet("med_tomas_hoy", emptySet())
-            if (savedSet != null) {
-                takenSlotsToday.addAll(savedSet)
-            }
-        }
-    }
-
-    private fun guardarMedicamentos() {
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-        val array = JSONArray()
-        for (m in medications) {
-            val obj = JSONObject()
-            obj.put("id", m.id)
-            obj.put("name", m.name)
-            obj.put("doseQty", m.doseQty)
-            obj.put("doseType", m.doseType)
-            obj.put("frequency", m.frequency)
-            obj.put("durationDays", m.durationDays)
-            obj.put("initialBoxSize", m.initialBoxSize)
-            obj.put("inventory", m.inventory)
-            obj.put("dateRegistered", m.dateRegistered)
-            array.put(obj)
-        }
-        prefs.edit().putString("med_list_json", array.toString()).apply()
-    }
-
-    private fun guardarTomasHoy() {
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-        prefs.edit().putStringSet("med_tomas_hoy", takenSlotsToday).apply()
-    }
-
     private fun actualizarUI() {
         actualizarTimeline()
         actualizarAlertasInventario()
         actualizarPuntosCalendario()
+        actualizarKPIs()
     }
 
+    /**
+     * Actualiza los KPIs visuales superiores del panel de estadísticas.
+     */
+    private fun actualizarKPIs() {
+        tvMedRegisteredKPI.text = medications.size.toString()
+        val lowStockCount = medications.count { it.inventory < 5 }
+        tvMedLowStockKPI.text = lowStockCount.toString()
+
+        // Cambiar color de alerta si hay bajo stock
+        if (lowStockCount > 0) {
+            tvMedLowStockKPI.setTextColor(Color.parseColor("#D32F2F"))
+        } else {
+            tvMedLowStockKPI.setTextColor(Color.parseColor("#2E7D32"))
+        }
+    }
+
+    /**
+     * Construye y renderiza de forma ordenada los horarios del tratamiento
+     * del día actual basándose en la frecuencia configurada.
+     */
     private fun actualizarTimeline() {
         layoutTimeline.removeAllViews()
 
@@ -347,7 +283,6 @@ class MedicamentoActivity : AppCompatActivity() {
         val activeSlots = mutableListOf<MedicationSlot>()
 
         for (med in medications) {
-            // Verificar si el tratamiento ya finalizó
             if (med.durationDays > 0) {
                 val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 try {
@@ -356,13 +291,9 @@ class MedicamentoActivity : AppCompatActivity() {
                         val cal = Calendar.getInstance()
                         cal.time = dateReg
                         cal.add(Calendar.DAY_OF_YEAR, med.durationDays)
-                        
-                        val dateExp = cal.time
-                        val today = sdf.parse(hoyStr)
-
-                        if (today != null && today.after(dateExp)) {
-                            // El tratamiento ya venció, ignorar
-                            continue
+                        val dateLimit = cal.time
+                        if (Date().after(dateLimit)) {
+                            continue // Tratamiento terminado
                         }
                     }
                 } catch (e: Exception) {
@@ -370,137 +301,89 @@ class MedicamentoActivity : AppCompatActivity() {
                 }
             }
 
-            // Generar franjas horarias
-            when {
-                med.frequency.contains("8 horas") -> {
+            // Generar slots de tomas según frecuencia
+            when (med.frequency) {
+                "Cada 8 horas (3 veces)" -> {
                     activeSlots.add(MedicationSlot(med, "08:00 AM", 8))
                     activeSlots.add(MedicationSlot(med, "04:00 PM", 16))
-                    activeSlots.add(MedicationSlot(med, "12:00 AM", 0))
+                    activeSlots.add(MedicationSlot(med, "12:00 AM", 24))
                 }
-                med.frequency.contains("Una vez") -> {
-                    activeSlots.add(MedicationSlot(med, "08:00 AM", 8))
+                "Una vez al día (Mañana)" -> {
+                    activeSlots.add(MedicationSlot(med, "09:00 AM", 9))
                 }
-                med.frequency.contains("Antes de dormir") -> {
+                "Antes de dormir (Noche)" -> {
                     activeSlots.add(MedicationSlot(med, "10:00 PM", 22))
                 }
             }
         }
 
-        // Ordenar cronológicamente
+        // Ordenar tomas por hora cronológica
         activeSlots.sortBy { it.sortHour }
 
         if (activeSlots.isEmpty()) {
             tvNoMedsMsg.visibility = View.VISIBLE
             layoutTimeline.addView(tvNoMedsMsg)
-            return
-        }
+        } else {
+            tvNoMedsMsg.visibility = View.GONE
+            val inflater = LayoutInflater.from(this)
 
-        tvNoMedsMsg.visibility = View.GONE
-        val inflater = LayoutInflater.from(this)
+            for (slot in activeSlots) {
+                val slotView = inflater.inflate(R.layout.item_medication_slot, layoutTimeline, false)
+                val tvMedNameDose = slotView.findViewById<TextView>(R.id.tvMedNameDose)
+                val tvMedTime = slotView.findViewById<TextView>(R.id.tvMedTime)
+                val tvMedDuration = slotView.findViewById<TextView>(R.id.tvMedDuration)
+                val btnTakeAction = slotView.findViewById<Button>(R.id.btnTakeAction)
+                val ivMedIcon = slotView.findViewById<ImageView>(R.id.ivMedIcon)
 
-        for (slot in activeSlots) {
-            val itemView = inflater.inflate(R.layout.item_medication_slot, layoutTimeline, false)
-            
-            val ivMedIcon = itemView.findViewById<ImageView>(R.id.ivMedIcon)
-            val tvMedNameDose = itemView.findViewById<TextView>(R.id.tvMedNameDose)
-            val tvMedTime = itemView.findViewById<TextView>(R.id.tvMedTime)
-            val tvMedDuration = itemView.findViewById<TextView>(R.id.tvMedDuration)
-            val btnTakeAction = itemView.findViewById<Button>(R.id.btnTakeAction)
+                tvMedNameDose.text = "${slot.med.name} - ${slot.med.doseQty} dosis"
+                tvMedTime.text = slot.timeLabel
+                tvMedDuration.text = if (slot.med.durationDays > 0) "Tratamiento: ${slot.med.durationDays} días" else "Tratamiento: Crónico"
 
-            val med = slot.med
-            
-            // Icono según tipo
-            val iconRes = when {
-                med.doseType.contains("Cápsula") -> R.drawable.ic_pill
-                med.doseType.contains("Pastilla") -> R.drawable.ic_tablet
-                else -> R.drawable.ic_syrup
-            }
-            ivMedIcon.setImageResource(iconRes)
-
-            // Info
-            tvMedNameDose.text = "${med.name} - ${med.doseQty} ${med.doseType}"
-            tvMedTime.text = slot.timeLabel
-            tvMedDuration.text = if (med.durationDays == 0) "Tratamiento: Permanente" else "Tratamiento: Por ${med.durationDays} días"
-
-            // Acción Tomar / Tomado
-            val slotId = "${med.id}_${slot.timeLabel}"
-            val isTaken = takenSlotsToday.contains(slotId)
-
-            if (isTaken) {
-                btnTakeAction.text = "✓ Tomado"
-                btnTakeAction.setBackgroundColor(Color.parseColor("#2E7D32"))
-                btnTakeAction.isEnabled = false
-            } else {
-                btnTakeAction.text = "Tomar"
-                btnTakeAction.setBackgroundColor(Color.parseColor("#1A4373"))
-                btnTakeAction.isEnabled = true
-                
-                btnTakeAction.setOnClickListener {
-                    marcarComoTomado(med, slot.timeLabel)
+                // Cambiar icono según tipo
+                when (slot.med.doseType) {
+                    "Cápsula" -> ivMedIcon.setImageResource(R.drawable.ic_medicina)
+                    "Pastilla redonda" -> ivMedIcon.setImageResource(R.drawable.ic_medicina)
+                    else -> ivMedIcon.setImageResource(R.drawable.ic_medicina)
                 }
-            }
 
-            layoutTimeline.addView(itemView)
-        }
-    }
+                val slotKey = "${slot.med.id}_${slot.timeLabel}"
+                val yaTomado = takenSlotsToday.contains(slotKey)
 
-    private fun marcarComoTomado(med: Medication, timeLabel: String) {
-        val slotId = "${med.id}_${timeLabel}"
-        
-        // Agregar a tomas de hoy
-        takenSlotsToday.add(slotId)
-        guardarTomasHoy()
-
-        // Restar inventario
-        med.inventory = (med.inventory - med.doseQty).coerceAtLeast(0)
-        guardarMedicamentos()
-
-        // Verificar cumplimiento total para guardar meta
-        evaluarCumplimientoDia()
-
-        actualizarUI()
-        
-        Toast.makeText(this, "Registrado: ${med.name} tomado a las $timeLabel", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun evaluarCumplimientoDia() {
-        // Generar todos los slots necesarios hoy
-        val hoyStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val slotsHoy = mutableListOf<String>()
-
-        for (med in medications) {
-            if (med.durationDays > 0) {
-                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                try {
-                    val dateReg = sdf.parse(med.dateRegistered)
-                    if (dateReg != null) {
-                        val cal = Calendar.getInstance()
-                        cal.time = dateReg
-                        cal.add(Calendar.DAY_OF_YEAR, med.durationDays)
-                        val today = sdf.parse(hoyStr)
-                        if (today != null && today.after(cal.time)) continue
+                if (yaTomado) {
+                    btnTakeAction.text = "Tomado"
+                    btnTakeAction.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4CAF50")))
+                    btnTakeAction.isEnabled = false
+                } else {
+                    btnTakeAction.text = "Tomar"
+                    btnTakeAction.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#1A4373")))
+                    btnTakeAction.isEnabled = true
+                    
+                    btnTakeAction.setOnClickListener {
+                        if (slot.med.inventory >= slot.med.doseQty) {
+                            slot.med.inventory -= slot.med.doseQty
+                            repository.saveMedications(medications)
+                            
+                            takenSlotsToday.add(slotKey)
+                            repository.saveTakenSlotsToday(takenSlotsToday)
+                            
+                            evaluarCumplimientoDiario(activeSlots)
+                            actualizarUI()
+                            Toast.makeText(this@MedicamentoActivity, "Dosis de ${slot.med.name} registrada", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@MedicamentoActivity, "Sin inventario de ${slot.med.name}. Reabastece la farmacia.", Toast.LENGTH_LONG).show()
+                        }
                     }
-                } catch (e: Exception) {
-                    continue
                 }
-            }
 
-            when {
-                med.frequency.contains("8 horas") -> {
-                    slotsHoy.add("${med.id}_08:00 AM")
-                    slotsHoy.add("${med.id}_04:00 PM")
-                    slotsHoy.add("${med.id}_12:00 AM")
-                }
-                med.frequency.contains("Una vez") -> {
-                    slotsHoy.add("${med.id}_08:00 AM")
-                }
-                med.frequency.contains("Antes de dormir") -> {
-                    slotsHoy.add("${med.id}_10:00 PM")
-                }
+                layoutTimeline.addView(slotView)
             }
         }
+    }
 
-        // Si hay slots y todos están en takenSlotsToday, marcar cumplimiento de hoy
+    /**
+     * Evalúa si todas las tomas configuradas para hoy fueron realizadas.
+     */
+    private fun evaluarCumplimientoDiario(slotsHoy: List<MedicationSlot>) {
         val calendar = Calendar.getInstance()
         val dayIndex = when(calendar.get(Calendar.DAY_OF_WEEK)) {
             Calendar.MONDAY -> 0
@@ -513,14 +396,13 @@ class MedicamentoActivity : AppCompatActivity() {
             else -> 0
         }
 
-        val compliance = slotsHoy.isNotEmpty() && takenSlotsToday.containsAll(slotsHoy)
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("med_cumple_dia_$dayIndex", compliance).apply()
+        val slotKeysHoy = slotsHoy.map { "${it.med.id}_${it.timeLabel}" }
+        val compliance = slotKeysHoy.isNotEmpty() && takenSlotsToday.containsAll(slotKeysHoy)
+        repository.saveMedicationHistoryDay(dayIndex, compliance)
     }
 
     private fun actualizarAlertasInventario() {
         layoutInventoryAlertList.removeAllViews()
-
         var hasAlerts = false
         val inflater = LayoutInflater.from(this)
 
@@ -547,16 +429,10 @@ class MedicamentoActivity : AppCompatActivity() {
     }
 
     private fun actualizarPuntosCalendario() {
-        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
         val dots = arrayOf(dotMon, dotTue, dotWed, dotThu, dotFri, dotSat, dotSun)
-
         for (i in 0..6) {
-            val cumple = prefs.getBoolean("med_cumple_dia_$i", false)
-            if (cumple) {
-                dots[i].setBackgroundColor(Color.parseColor("#2E7D32")) // Punto verde
-            } else {
-                dots[i].setBackgroundColor(Color.parseColor("#B0BEC5")) // Punto gris
-            }
+            val cumple = repository.getMedicationHistoryDay(i)
+            dots[i].setBackgroundColor(Color.parseColor(if (cumple) "#2E7D32" else "#B0BEC5"))
         }
     }
 }

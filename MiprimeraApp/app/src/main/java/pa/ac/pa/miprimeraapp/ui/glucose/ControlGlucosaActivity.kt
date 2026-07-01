@@ -4,43 +4,46 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
-import android.widget.TextView // <-- 1. IMPORTANTE: Importar TextView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
-import android.widget.ImageView
-import java.text.SimpleDateFormat // <-- Para capturar la hora actual
-import java.util.Locale
-import java.util.Calendar
-import java.util.Date
+import pa.ac.pa.miprimeraapp.data.RegistroGlucosa
+import pa.ac.pa.miprimeraapp.data.SaludAppRepository
+import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
+import java.text.SimpleDateFormat
+import java.util.*
 
+/**
+ * Actividad para el control, registro y análisis del nivel de glucosa en sangre del usuario.
+ * Utiliza SaludAppRepository para persistir las lecturas de forma modular.
+ */
 class ControlGlucosaActivity : AppCompatActivity() {
 
-    // Declaración de las variables para las vistas
+    // Repositorio modular de datos
+    private lateinit var repository: SaludAppRepository
+
+    // Componentes del formulario
     private lateinit var etGlucoseValue: EditText
     private lateinit var etOptionalNotes: EditText
     private lateinit var rgRecordType: RadioGroup
     private lateinit var btnSaveRecord: Button
-
-    // 2. Variable para el TextView del resumen previo
     private lateinit var tvPreviousSummary: TextView
+
+    // KPIs de estadísticas de glucosa
+    private lateinit var tvStatGlucoseAvg: TextView
+    private lateinit var tvStatGlucoseRange: TextView
+    private lateinit var tvStatGlucoseCount: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_control_glucosa)
 
-        // Botón de regreso
-        val btnBack = findViewById<ImageView>(R.id.btnBack)
-        btnBack.setOnClickListener { finish() }
-
-        // Fecha dinámica en el encabezado
-        val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
-        val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
-        tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
+        repository = SaludAppRepositoryImpl(this)
 
         // Configuración de márgenes para el diseño Edge-to-Edge
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -49,11 +52,17 @@ class ControlGlucosaActivity : AppCompatActivity() {
             insets
         }
 
-        // 1. Inicializar las vistas mediante sus IDs del XML
         inicializarVistas()
+        actualizarUI()
 
-        // 2. Configurar los eventos de clic
-        configurarListeners()
+        // Fecha dinámica en el encabezado
+        val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
+        val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
+        tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
+
+        btnSaveRecord.setOnClickListener {
+            ejecutarRegistro()
+        }
     }
 
     private fun inicializarVistas() {
@@ -61,18 +70,17 @@ class ControlGlucosaActivity : AppCompatActivity() {
         etOptionalNotes = findViewById(R.id.etOptionalNotes)
         rgRecordType = findViewById(R.id.rgRecordType)
         btnSaveRecord = findViewById(R.id.btnSaveRecord)
-
-        // 3. Inicializar el componente del XML
         tvPreviousSummary = findViewById(R.id.tvPreviousSummary)
+
+        // Vistas de estadísticas
+        tvStatGlucoseAvg = findViewById(R.id.tvStatGlucoseAvg)
+        tvStatGlucoseRange = findViewById(R.id.tvStatGlucoseRange)
+        tvStatGlucoseCount = findViewById(R.id.tvStatGlucoseCount)
     }
 
-    private fun configurarListeners() {
-        // RadioGroup ya garantiza que solo un RadioButton esté seleccionado.
-        btnSaveRecord.setOnClickListener {
-            ejecutarRegistro()
-        }
-    }
-
+    /**
+     * Valida e inicia el proceso de guardado del nuevo registro de glucosa.
+     */
     private fun ejecutarRegistro() {
         val glucosaTexto = etGlucoseValue.text.toString().trim()
         val notasOpcionales = etOptionalNotes.text.toString().trim()
@@ -88,6 +96,9 @@ class ControlGlucosaActivity : AppCompatActivity() {
         guardarRegistro(valorGlucosa, tipoRegistro, notasOpcionales)
     }
 
+    /**
+     * Valida que el valor ingresado sea numérico y se encuentre en un rango de salud fisiológico real (20 a 600 mg/dL).
+     */
     private fun validarGlucosa(texto: String): Boolean {
         if (texto.isEmpty()) {
             etGlucoseValue.error = "El valor de glucosa es obligatorio"
@@ -122,28 +133,63 @@ class ControlGlucosaActivity : AppCompatActivity() {
     }
 
     /**
-     * Muestra la confirmación de guardado, ACTUALIZA EL RESUMEN y resetea los campos.
+     * Guarda la lectura en la persistencia local modular a través del repositorio,
+     * limpia el formulario y actualiza la sección de KPIs.
      */
     private fun guardarRegistro(glucosa: Double, tipo: String, notas: String) {
-        val resumen = "Glucosa: $glucosa mg/dL\nTipo: $tipo\nNotas: ${notas.ifEmpty { "Ninguna" }}"
+        val horaActual = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Calendar.getInstance().time)
+        val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
-        // Alerta de éxito al usuario
+        val nuevoRegistro = RegistroGlucosa(
+            valor = glucosa,
+            tipo = tipo,
+            notas = notas,
+            hora = horaActual,
+            fecha = fechaActual
+        )
+
+        // Agregar al repositorio
+        repository.addGlucoseRecord(nuevoRegistro)
+
+        val resumen = "Glucosa: $glucosa mg/dL\nTipo: $tipo\nNotas: ${notas.ifEmpty { "Ninguna" }}"
         Toast.makeText(this, "Registro Exitoso:\n$resumen", Toast.LENGTH_LONG).show()
 
-        // 4. Obtener la hora actual del sistema en formato hh:mm a (Ej: 12:48 PM)
-        val formateadorHora = SimpleDateFormat("h:mm a", Locale.getDefault())
-        val horaActual = formateadorHora.format(Calendar.getInstance().time)
-
-        // 5. MODIFICAR EL TEXTVIEW CON LOS NUEVOS DATOS INGRESADOS
-        // Quitamos los decimales innecesarios convirtiendo la glucosa a entero si es necesario (ej: 124 en vez de 124.0)
-        val glucosaEntero = glucosa.toInt()
-        tvPreviousSummary.text = "Última lectura: $glucosaEntero mg/dL ($tipo; $horaActual)"
-
-        // Limpiar el formulario para un próximo uso limpio
+        // Limpiar el formulario
         etGlucoseValue.text.clear()
         etOptionalNotes.text.clear()
-
-        // Reseteo manual de los botones
         rgRecordType.check(R.id.rbAyunas)
+
+        actualizarUI()
+    }
+
+    /**
+     * Refresca las estadísticas generales y el último resumen del historial.
+     */
+    private fun actualizarUI() {
+        val history = repository.getGlucoseRecords()
+
+        if (history.isNotEmpty()) {
+            val ultimo = history.first()
+            val glucosaEntero = ultimo.valor.toInt()
+            tvPreviousSummary.text = "Última lectura: $glucosaEntero mg/dL (${ultimo.tipo}; ${ultimo.hora})"
+
+            // Calcular KPIs
+            val count = history.size
+            val sum = history.sumOf { it.valor }
+            val avg = sum / count
+
+            // Rango objetivo estándar saludable: 70 a 140 mg/dL
+            val inRangeCount = history.count { it.valor in 70.0..140.0 }
+            val pctRange = (inRangeCount.toFloat() / count.toFloat() * 100).toInt()
+
+            tvStatGlucoseAvg.text = String.format(Locale.getDefault(), "%.0f mg/dL", avg)
+            tvStatGlucoseRange.text = "$pctRange%"
+            tvStatGlucoseCount.text = count.toString()
+        } else {
+            tvPreviousSummary.text = "No hay lecturas registradas"
+            tvStatGlucoseAvg.text = "--"
+            tvStatGlucoseRange.text = "--"
+            tvStatGlucoseCount.text = "0"
+        }
     }
 }

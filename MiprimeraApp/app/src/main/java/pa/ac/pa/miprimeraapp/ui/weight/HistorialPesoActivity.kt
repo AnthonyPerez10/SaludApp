@@ -12,62 +12,69 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.data.RegistroPeso
+import pa.ac.pa.miprimeraapp.data.SaludAppRepository
+import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
 import java.util.Locale
 
+/**
+ * Actividad para mostrar el historial persistido de peso e IMC del usuario.
+ * Utiliza SaludAppRepository para cargar el historial real guardado.
+ */
 class HistorialPesoActivity : AppCompatActivity() {
 
-    data class RegistroPeso(
-        val fecha: String,
-        val peso: Double,
-        val imc: Double
-    )
+    private lateinit var repository: SaludAppRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContentView(R.layout.activity_historial_de_peso)
+
+        repository = SaludAppRepositoryImpl(this)
 
         val lvHistorial = findViewById<ListView>(R.id.listViewHistorial)
 
-        // Recibir datos
-        val pesoRecibido = intent.getDoubleExtra("peso", 0.0)
-        val imcRecibido = intent.getDoubleExtra("imc", 0.0)
+        // Cargamos la lista real de registros guardados en SharedPreferences a través de la capa modular
+        val listaRegistros = repository.getWeightHistory().toMutableList()
 
-        // Lista de registros
-        val listaRegistros = mutableListOf<RegistroPeso>()
-
-        // Solo agregamos "Hoy" si llegaron valores reales (evita mostrar 0.0 si se abre directamente).
-        if (pesoRecibido > 0.0 && imcRecibido > 0.0) {
-            listaRegistros.add(RegistroPeso("Hoy", pesoRecibido, imcRecibido))
+        // Si la lista está vacía, podemos añadir registros de ejemplo para poblar inicialmente la vista de forma agradable
+        if (listaRegistros.isEmpty()) {
+            poblarRegistrosPorDefecto()
+            listaRegistros.addAll(repository.getWeightHistory())
         }
 
-        // Datos de ejemplo (mientras no exista persistencia real).
-        listaRegistros.addAll(
-            listOf(
-                RegistroPeso("01/01/2024", 95.5, 42.4),
-                RegistroPeso("16/01/2024", 93.8, 31.8),
-                RegistroPeso("31/01/2024", 92.0, 31.2),
-                RegistroPeso("15/02/2024", 90.5, 30.7),
-                RegistroPeso("01/03/2024", 88.0, 29.8),
-                RegistroPeso("16/03/2024", 86.2, 29.2),
-                RegistroPeso("31/03/2024", 84.5, 28.6),
-                RegistroPeso("15/04/2024", 82.0, 27.8),
-                RegistroPeso("30/04/2024", 79.5, 26.9),
-                RegistroPeso("15/05/2024", 77.0, 26.1),
-                RegistroPeso("30/05/2024", 74.5, 25.2),
-                RegistroPeso("14/06/2024", 72.0, 24.4),
-                RegistroPeso("29/06/2024", 70.5, 23.9),
-                RegistroPeso("14/07/2024", 69.0, 23.4),
-                RegistroPeso("29/07/2024", 67.5, 22.9)
-            )
-        )
-
         val adapter = PesoAdapter(this, listaRegistros)
-
         lvHistorial.adapter = adapter
     }
 
+    /**
+     * Llena el historial inicial con datos simulados si es la primera vez que se abre la app
+     * para asegurar una experiencia visual inicial pulida y realista.
+     */
+    private fun poblarRegistrosPorDefecto() {
+        val mockData = listOf(
+            RegistroPeso("29/06/2024", 70.5, 23.9),
+            RegistroPeso("14/06/2024", 72.0, 24.4),
+            RegistroPeso("30/05/2024", 74.5, 25.2),
+            RegistroPeso("15/05/2024", 77.0, 26.1),
+            RegistroPeso("30/04/2024", 79.5, 26.9),
+            RegistroPeso("15/04/2024", 82.0, 27.8),
+            RegistroPeso("31/03/2024", 84.5, 28.6),
+            RegistroPeso("16/03/2024", 86.2, 29.2),
+            RegistroPeso("01/03/2024", 88.0, 29.8),
+            RegistroPeso("15/02/2024", 90.5, 30.7),
+            RegistroPeso("31/01/2024", 92.0, 31.2),
+            RegistroPeso("16/01/2024", 93.8, 31.8),
+            RegistroPeso("01/01/2024", 95.5, 32.4)
+        )
+        for (item in mockData.reversed()) {
+            repository.addWeightRecord(item)
+        }
+    }
+
+    /**
+     * Adaptador personalizado para renderizar la lista de registros de peso en el ListView.
+     */
     class PesoAdapter(
         private val context: Context,
         private val data: List<RegistroPeso>
@@ -84,39 +91,41 @@ class HistorialPesoActivity : AppCompatActivity() {
             convertView: View?,
             parent: ViewGroup?
         ): View {
-
             val view = convertView ?: LayoutInflater.from(context)
                 .inflate(R.layout.ly_historialpeso, parent, false)
 
             val item = data[position]
 
             val ivIcono = view.findViewById<ImageView>(R.id.ivIconoIMC)
-
             val tvFecha = view.findViewById<TextView>(R.id.tvFecha)
-
             val tvPesoIMC = view.findViewById<TextView>(R.id.tvPesoIMC)
 
-            // Textos
+            // Textos descriptivos del registro
             tvFecha.text = "Fecha: ${item.fecha}"
+            tvPesoIMC.text = String.format(Locale.getDefault(), "Peso: %.1f kg | IMC: %.1f", item.peso, item.imc)
 
-            tvPesoIMC.text = String.format(
-                Locale.getDefault(),
-                "Peso: %.1f kg | IMC: %.1f",
-                item.peso,
-                item.imc
-            )
-
-            // Imagen según IMC (mapeo directo para evitar getIdentifier y fallos por nombres).
-            val resId = when {
-                item.imc < 18.5 -> R.drawable.bajopeso
-                item.imc < 25.0 -> R.drawable.normal
-                item.imc < 30.0 -> R.drawable.sobrepeso
-                item.imc < 35.0 -> R.drawable.obesidad1
-                item.imc < 40.0 -> R.drawable.obesidad2
-                else -> R.drawable.obesidad3
+            // Asignar el icono visual del IMC según su categoría de salud
+            val imc = item.imc
+            when {
+                imc < 18.5 -> {
+                    ivIcono.setImageResource(R.drawable.bajopeso)
+                }
+                imc < 25.0 -> {
+                    ivIcono.setImageResource(R.drawable.normal)
+                }
+                imc < 30.0 -> {
+                    ivIcono.setImageResource(R.drawable.sobrepeso)
+                }
+                imc < 35.0 -> {
+                    ivIcono.setImageResource(R.drawable.obesidad1)
+                }
+                imc < 40.0 -> {
+                    ivIcono.setImageResource(R.drawable.obesidad2)
+                }
+                else -> {
+                    ivIcono.setImageResource(R.drawable.obesidad3)
+                }
             }
-
-            ivIcono.setImageResource(resId)
 
             return view
         }
