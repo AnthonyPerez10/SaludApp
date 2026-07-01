@@ -45,13 +45,19 @@
                         android:orientation="vertical"
                         android:gravity="center">
 
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_agua"
+                            android:layout_marginBottom="8dp" />
+
                         <TextView
                             android:id="@+id/txtVTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Control de Hidratación"
                             android:textColor="@color/ui_weight_title_blue"
-                            android:textSize="32sp"
+                            android:textSize="28sp"
                             android:textStyle="bold"
                             android:layout_marginBottom="8dp"/>
 
@@ -354,6 +360,188 @@
                         android:backgroundTint="@color/peso_primary_blue"
                         android:textColor="@color/white"
                         android:textStyle="bold"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- ESTADÍSTICAS SEMANALES -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Consumo Semanal (Meta Cumplida)"
+                        android:textColor="@color/peso_primary_blue"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Contenedor del Gráfico de Barras -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:orientation="horizontal"
+                        android:gravity="bottom"
+                        android:padding="4dp">
+
+                        <!-- Lunes -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterL"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="L"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Martes -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterM"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="M"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Miércoles -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterMi"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="M"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Jueves -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterJ"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="J"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Viernes -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterV"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="V"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Sábado -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterS"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="S"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+
+                        <!-- Domingo -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="bottom|center_horizontal">
+                            <View
+                                android:id="@+id/barWaterD"
+                                android:layout_width="8dp"
+                                android:layout_height="30dp"
+                                android:background="#B0BEC5" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="D"
+                                android:textSize="10sp"
+                                android:textColor="@color/peso_gray_text"
+                                android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

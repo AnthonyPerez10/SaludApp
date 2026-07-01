@@ -16,6 +16,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import pa.ac.pa.miprimeraapp.R
+import android.widget.ImageView
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 import java.util.Calendar
 
 class PresionArterialActivity : AppCompatActivity() {
@@ -46,6 +50,15 @@ class PresionArterialActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_presion_arterial)
+
+        // Botón de regreso
+        val btnBack = findViewById<ImageView>(R.id.btnBack)
+        btnBack.setOnClickListener { finish() }
+
+        // Fecha dinámica en el encabezado
+        val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
+        val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
+        tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
 
         btnFecha = findViewById(R.id.btnFecha)
         btnHora = findViewById(R.id.btnHora)

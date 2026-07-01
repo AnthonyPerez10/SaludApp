@@ -1,0 +1,146 @@
+package pa.ac.pa.miprimeraapp.ui.menu
+
+import android.content.Intent
+import android.os.Bundle
+import android.util.Patterns
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.sharedpreferences.SharedPreferencesManager
+
+class RegisterActivity : AppCompatActivity() {
+
+    private lateinit var etNombre: EditText
+    private lateinit var etApellido: EditText
+    private lateinit var etEdad: EditText
+    private lateinit var etEmail: EditText
+    private lateinit var etPassword: EditText
+    private lateinit var cbTerms: CheckBox
+    private lateinit var btnEnviar: Button
+    private lateinit var tvGoToLogin: TextView
+
+    private lateinit var prefsManager: SharedPreferencesManager
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_register)
+
+        // Configuración Edge-to-Edge
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+        prefsManager = SharedPreferencesManager(this)
+
+        inicializarVistas()
+        setupListeners()
+    }
+
+    private fun inicializarVistas() {
+        etNombre = findViewById(R.id.etNombre)
+        etApellido = findViewById(R.id.etApellido)
+        etEdad = findViewById(R.id.etEdad)
+        etEmail = findViewById(R.id.etEmail)
+        etPassword = findViewById(R.id.etPassword)
+        cbTerms = findViewById(R.id.cbTerms)
+        btnEnviar = findViewById(R.id.btnEnviar)
+        tvGoToLogin = findViewById(R.id.tvGoToLogin)
+    }
+
+    private fun setupListeners() {
+        btnEnviar.setOnClickListener {
+            ejecutarRegistro()
+        }
+
+        tvGoToLogin.setOnClickListener {
+            // Ir a Login
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+    }
+
+    private fun ejecutarRegistro() {
+        val nombre = etNombre.text.toString().trim()
+        val apellido = etApellido.text.toString().trim()
+        val edadStr = etEdad.text.toString().trim()
+        val email = etEmail.text.toString().trim()
+        val password = etPassword.text.toString().trim()
+        val termsAccepted = cbTerms.isChecked
+
+        // Validaciones
+        if (nombre.isEmpty()) {
+            etNombre.error = "El nombre es obligatorio"
+            etNombre.requestFocus()
+            return
+        }
+
+        if (apellido.isEmpty()) {
+            etApellido.error = "El apellido es obligatorio"
+            etApellido.requestFocus()
+            return
+        }
+
+        if (edadStr.isEmpty()) {
+            etEdad.error = "La edad es obligatoria"
+            etEdad.requestFocus()
+            return
+        }
+
+        val edad = edadStr.toIntOrNull()
+        if (edad == null || edad <= 0 || edad > 120) {
+            etEdad.error = "Ingresa una edad válida (1 a 120 años)"
+            etEdad.requestFocus()
+            return
+        }
+
+        if (email.isEmpty()) {
+            etEmail.error = "El correo electrónico es obligatorio"
+            etEmail.requestFocus()
+            return
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.error = "Ingresa un correo electrónico válido"
+            etEmail.requestFocus()
+            return
+        }
+
+        if (password.isEmpty()) {
+            etPassword.error = "La contraseña es obligatoria"
+            etPassword.requestFocus()
+            return
+        }
+
+        if (password.length < 4) {
+            etPassword.error = "La contraseña debe tener al menos 4 caracteres"
+            etPassword.requestFocus()
+            return
+        }
+
+        if (!termsAccepted) {
+            Toast.makeText(this, "Debes aceptar los términos para compartir tus datos", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Registrar usuario
+        prefsManager.registerUser(nombre, apellido, edad, password, true)
+        
+        Toast.makeText(this, "¡Registro completado con éxito!", Toast.LENGTH_LONG).show()
+
+        // Redirigir al menú principal
+        val intent = Intent(this, MenuActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+}

@@ -45,13 +45,19 @@
                         android:orientation="vertical"
                         android:gravity="center">
 
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@drawable/ic_medicina"
+                            android:layout_marginBottom="8dp" />
+
                         <TextView
                             android:id="@+id/txtVTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Control de Medicación"
                             android:textColor="@color/ui_weight_title_blue"
-                            android:textSize="32sp"
+                            android:textSize="28sp"
                             android:textStyle="bold"
                             android:layout_marginBottom="8dp"/>
 

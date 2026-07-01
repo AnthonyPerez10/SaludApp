@@ -3,10 +3,12 @@ package pa.ac.pa.miprimeraapp.ui.physical
 import android.content.Context
 import android.os.Bundle
 import android.os.SystemClock
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.Chronometer
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -14,7 +16,9 @@ import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
 import pa.ac.pa.miprimeraapp.ui.custom.CircularProgressView
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import java.util.Date
+import java.util.Calendar
 
 class ActividadFisicaActivity : AppCompatActivity() {
 
@@ -23,13 +27,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
     private lateinit var tvStreakValue: TextView
     private lateinit var tvStepsLogged: TextView
     private lateinit var btnAddSteps: Button
-    
-    // Formulario
-    private lateinit var spinnerActivityType: Spinner
-    private lateinit var spinnerIntensity: Spinner
-    private lateinit var etDuration: EditText
-    private lateinit var tvRecommendation: TextView
-    private lateinit var btnSaveActivity: Button
     private lateinit var btnBack: View
 
     // Historial Semanal (Barras)
@@ -60,18 +57,8 @@ class ActividadFisicaActivity : AppCompatActivity() {
     private var caloriesToday = 0f
     private var streakDays = 0
     private var isChronoRunning = false
-    private var chronoBaseTime: Long = 0
     private var timeWhenPaused: Long = 0
     private var selectedChronoType = "Correr"
-
-    // Opciones para Spinners
-    private val activityTypes = arrayOf(
-        "Cardio (Correr)", "Cardio (Nadar)", "Cardio (Ciclismo)",
-        "Fuerza (Gimnasio)", "Fuerza (Pesas)",
-        "Deportes (Fútbol)", "Deportes (Tenis)", "Yoga / Estiramientos"
-    )
-
-    private val intensities = arrayOf("Baja", "Media", "Alta")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +73,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
         }
 
         inicializarVistas()
-        setupSpinners()
         cargarDatos()
         setupListeners()
         actualizarUI()
@@ -102,12 +88,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
         tvStreakValue = findViewById(R.id.tvStreakValue)
         tvStepsLogged = findViewById(R.id.tvStepsLogged)
         btnAddSteps = findViewById(R.id.btnAddSteps)
-        
-        spinnerActivityType = findViewById(R.id.spinnerActivityType)
-        spinnerIntensity = findViewById(R.id.spinnerIntensity)
-        etDuration = findViewById(R.id.etDuration)
-        tvRecommendation = findViewById(R.id.tvRecommendation)
-        btnSaveActivity = findViewById(R.id.btnSaveActivity)
         btnBack = findViewById(R.id.btnBack)
 
         barL = findViewById(R.id.barL)
@@ -131,16 +111,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
         btnBike = findViewById(R.id.btnBike)
     }
 
-    private fun setupSpinners() {
-        val adapterType = ArrayAdapter(this, android.R.layout.simple_spinner_item, activityTypes)
-        adapterType.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerActivityType.adapter = adapterType
-
-        val adapterInt = ArrayAdapter(this, android.R.layout.simple_spinner_item, intensities)
-        adapterInt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerIntensity.adapter = adapterInt
-    }
-
     private fun setupListeners() {
         // Regresar
         btnBack.setOnClickListener { finish() }
@@ -152,28 +122,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
             guardarProgresoDiario()
             actualizarUI()
             Toast.makeText(this, "+1000 Pasos agregados", Toast.LENGTH_SHORT).show()
-        }
-
-        // Listener para recomendación dinámica en base a duración e intensidad
-        val textWatcher = object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                calcularRecomendacionDinamica()
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        }
-        etDuration.addTextChangedListener(textWatcher)
-
-        spinnerIntensity.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                calcularRecomendacionDinamica()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        // Guardar actividad manual
-        btnSaveActivity.setOnClickListener {
-            registrarActividadManual()
         }
 
         // Quick Actions
@@ -204,83 +152,43 @@ class ActividadFisicaActivity : AppCompatActivity() {
         }
     }
 
-    private fun calcularRecomendacionDinamica() {
-        val duracionStr = etDuration.text.toString().trim()
-        if (duracionStr.isEmpty()) {
-            tvRecommendation.text = "Ingresa la duración para calcular..."
-            return
-        }
-
-        val duracion = duracionStr.toIntOrNull() ?: 0
-        val intensidad = spinnerIntensity.selectedItem.toString()
-
-        if (duracion <= 0) {
-            tvRecommendation.text = "Ingresa una duración válida."
-            return
-        }
-
-        // Reglas de negocio para sugerir calidad
-        val calidad: String
-        val consejo: String
-
-        if (duracion < 20) {
-            calidad = "Baja (Sesión corta)"
-            consejo = "Buen esfuerzo inicial. Intenta llegar a los 30 minutos para activar tu sistema aeróbico."
-        } else if (duracion in 20..45) {
-            if (intensidad == "Alta") {
-                calidad = "Alta (Alta Intensidad)"
-                consejo = "Excelente estímulo cardiovascular y metabólico. Asegúrate de estirar después."
-            } else {
-                calidad = "Media"
-                consejo = "Rango ideal para mantenimiento de salud y quema de calorías básica."
-            }
-        } else {
-            // > 45 minutos
-            if (intensidad == "Baja") {
-                calidad = "Media (Resistencia Aeróbica)"
-                consejo = "Buen trabajo de volumen. Ideal para recuperar energía e hidratar articulaciones."
-            } else {
-                calidad = "Alta (Alto Rendimiento)"
-                consejo = "¡Impresionante! Gran volumen e intensidad. Excelente para tu capacidad física global."
-            }
-        }
-
-        tvRecommendation.text = "Calidad: $calidad\n$consejo"
+    private fun mostrarCronometro(tipo: String) {
+        selectedChronoType = tipo
+        tvChronoTitle.text = "Registrando: $tipo"
+        layoutChronometer.visibility = View.VISIBLE
+        
+        // Resetear cronómetro
+        tvChronoTime.base = SystemClock.elapsedRealtime()
+        timeWhenPaused = 0
+        tvChronoTime.start()
+        isChronoRunning = true
+        ivChronoPlayIcon.setImageResource(android.R.drawable.ic_media_pause)
     }
 
-    private fun registrarActividadManual() {
-        val duracionTexto = etDuration.text.toString().trim()
-        if (duracionTexto.isEmpty()) {
-            etDuration.error = "Ingresa la duración en minutos"
-            etDuration.requestFocus()
-            return
+    private fun detenerYGuardarCronometro() {
+        tvChronoTime.stop()
+        val elapsedMillis = SystemClock.elapsedRealtime() - tvChronoTime.base
+        val elapsedMinutes = (elapsedMillis / 1000 / 60).toInt().coerceAtLeast(1)
+
+        layoutChronometer.visibility = View.GONE
+        isChronoRunning = false
+
+        // Calcular calorías quemadas según tipo
+        val factorCalorias = when (selectedChronoType) {
+            "Correr" -> 8.5f
+            "Fuerza" -> 5.5f
+            "Yoga" -> 4f
+            "Ciclismo" -> 7f
+            else -> 5f
         }
 
-        val duracion = duracionTexto.toIntOrNull()
-        if (duracion == null || duracion <= 0 || duracion > 300) {
-            etDuration.error = "Ingresa un tiempo realista (1 a 300 minutos)"
-            etDuration.requestFocus()
-            return
-        }
-
-        val tipo = spinnerActivityType.selectedItem.toString()
-        val intensidad = spinnerIntensity.selectedItem.toString()
-
-        // Calcular calorías quemadas
-        val factorCalorias = when {
-            tipo.contains("Cardio") -> if (intensidad == "Alta") 10f else if (intensidad == "Media") 7.5f else 5f
-            tipo.contains("Fuerza") -> if (intensidad == "Alta") 8f else if (intensidad == "Media") 5.5f else 3.5f
-            tipo.contains("Deportes") -> if (intensidad == "Alta") 9f else if (intensidad == "Media") 6.5f else 4.5f
-            else -> 4f // Yoga/Otros
-        }
-
-        val caloriasQuemadas = duracion * factorCalorias
+        val caloriasQuemadas = elapsedMinutes * factorCalorias
         caloriesToday += caloriasQuemadas
         if (caloriesToday > 5000f) caloriesToday = 5000f
 
         // Registrar pasos ficticios si es cardio
-        if (tipo.contains("Cardio") || tipo.contains("Deportes")) {
-            stepsToday += (duracion * 120).toFloat() // Aprox 120 pasos por minuto
+        if (selectedChronoType == "Correr" || selectedChronoType == "Ciclismo") {
+            stepsToday += (elapsedMinutes * 120).toFloat() // Aprox 120 pasos por minuto
             if (stepsToday > 25000f) stepsToday = 25000f
         }
 
@@ -291,9 +199,7 @@ class ActividadFisicaActivity : AppCompatActivity() {
         guardarProgresoDiario()
         actualizarUI()
 
-        // Limpiar
-        etDuration.text.clear()
-        Toast.makeText(this, "Actividad registrada: +${caloriasQuemadas.toInt()} kcal", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Sesión de $selectedChronoType guardada: +${caloriasQuemadas.toInt()} kcal ($elapsedMinutes min)", Toast.LENGTH_LONG).show()
     }
 
     private fun evaluarRacha() {
@@ -322,46 +228,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
 
             prefs.edit().putString("actividad_ultima_fecha", hoyStr).apply()
         }
-    }
-
-    private fun mostrarCronometro(tipo: String) {
-        selectedChronoType = tipo
-        tvChronoTitle.text = "Registrando: $tipo"
-        layoutChronometer.visibility = View.VISIBLE
-        
-        // Resetear cronómetro
-        tvChronoTime.base = SystemClock.elapsedRealtime()
-        timeWhenPaused = 0
-        tvChronoTime.start()
-        isChronoRunning = true
-        ivChronoPlayIcon.setImageResource(android.R.drawable.ic_media_pause)
-    }
-
-    private fun detenerYGuardarCronometro() {
-        tvChronoTime.stop()
-        val elapsedMillis = SystemClock.elapsedRealtime() - tvChronoTime.base
-        val elapsedMinutes = (elapsedMillis / 1000 / 60).toInt().coerceAtLeast(1)
-
-        layoutChronometer.visibility = View.GONE
-        isChronoRunning = false
-
-        // Poner en el formulario
-        etDuration.setText(elapsedMinutes.toString())
-        
-        // Pre-seleccionar tipo en el Spinner
-        val spinnerPosition = when (selectedChronoType) {
-            "Correr" -> 0
-            "Fuerza" -> 3
-            "Yoga" -> 7
-            "Ciclismo" -> 2
-            else -> 0
-        }
-        spinnerActivityType.setSelection(spinnerPosition)
-        
-        // Pre-seleccionar intensidad Media
-        spinnerIntensity.setSelection(1)
-
-        Toast.makeText(this, "Cronómetro detenido. Duración cargada: $elapsedMinutes min", Toast.LENGTH_SHORT).show()
     }
 
     private fun cargarDatos() {
@@ -399,7 +265,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
         
         // Registrar cumplimiento de hoy
         val calendar = Calendar.getInstance()
-        // Day of week: Sunday = 1, Monday = 2... Saturday = 7
         val dayIndex = when(calendar.get(Calendar.DAY_OF_WEEK)) {
             Calendar.MONDAY -> 0
             Calendar.TUESDAY -> 1
@@ -411,7 +276,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
             else -> 0
         }
         
-        // Se cumple meta si pasos >= 10,000 o calorías >= 2,000 (o combinaciones moderadas)
         val cumpleMeta = (stepsToday >= 10000f || caloriesToday >= 600f)
         editor.putBoolean("actividad_cumple_dia_$dayIndex", cumpleMeta)
         
@@ -460,15 +324,12 @@ class ActividadFisicaActivity : AppCompatActivity() {
             val cumple = prefs.getBoolean("actividad_cumple_dia_$i", false)
             val bar = bars[i]
             
-            // Establecer color verde si se cumplió la meta, o gris/azul si no.
             if (cumple) {
                 bar.setBackgroundColor(android.graphics.Color.parseColor("#2E7D32")) // Verde meta
             } else {
                 bar.setBackgroundColor(android.graphics.Color.parseColor("#B0BEC5")) // Gris claro
             }
 
-            // Cambiar altura programáticamente para reflejar progreso de ese día
-            // (Para simplicidad, asignamos alturas preestablecidas si cumple/no cumple, simulando el gráfico)
             val heightDp = if (cumple) 90L else 30L
             val density = resources.displayMetrics.density
             val params = bar.layoutParams

@@ -6,9 +6,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/saludappicono"
+        android:icon="@drawable/icono_saludapp"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/saludappicono"
+        android:roundIcon="@drawable/icono_saludapp"
         android:supportsRtl="true"
         android:theme="@style/Theme.MiPrimeraApp">
         <activity
@@ -44,6 +44,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.menu.LoginActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+        <activity
+            android:name=".ui.menu.RegisterActivity"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
         <activity
             android:name=".ui.menu.MainActivity"
             android:exported="false" />

@@ -2,11 +2,15 @@ package pa.ac.pa.miprimeraapp.ui.menu
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageButton
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
 import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.sharedpreferences.SharedPreferencesManager
 import pa.ac.pa.miprimeraapp.ui.weight.ControlPesoActivity
 import pa.ac.pa.miprimeraapp.ui.pressure.PresionArterialActivity
 import pa.ac.pa.miprimeraapp.ui.glucose.ControlGlucosaActivity
@@ -15,6 +19,9 @@ import pa.ac.pa.miprimeraapp.ui.hydration.HidratacionActivity
 import pa.ac.pa.miprimeraapp.ui.medication.MedicamentoActivity
 
 class MenuActivity : AppCompatActivity() {
+
+    private lateinit var prefsManager: SharedPreferencesManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -22,6 +29,27 @@ class MenuActivity : AppCompatActivity() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO) //Control de tema del sistema
 
         supportActionBar?.hide()
+
+        prefsManager = SharedPreferencesManager(this)
+
+        // Configurar Saludo Personalizado
+        val tvUserGreeting = findViewById<TextView>(R.id.tvUserGreeting)
+        if (prefsManager.isRegistered()) {
+            val nombre = prefsManager.getNombre()
+            tvUserGreeting.text = "¡Hola, $nombre!"
+        } else {
+            tvUserGreeting.text = "¡Hola, Usuario!"
+        }
+
+        // Configurar Botón de Cierre de Sesión (Logout)
+        val btnLogout = findViewById<ImageButton>(R.id.btnLogout)
+        btnLogout.setOnClickListener {
+            prefsManager.logout()
+            Toast.makeText(this, "Sesión cerrada correctamente", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
 
         // Accion del boton CardV_Peso
         val cardPeso = findViewById<CardView>(R.id.CardV_Peso)

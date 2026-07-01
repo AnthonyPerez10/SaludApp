@@ -11,6 +11,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
 import pa.ac.pa.miprimeraapp.R
 
+import android.view.View
+import android.widget.ImageView
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
+
 class ControlPesoActivity : AppCompatActivity() {
 
     // Variables globales para guardar último resultado
@@ -21,6 +27,15 @@ class ControlPesoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_control_peso)
+
+        // Botón de regreso
+        val btnBack = findViewById<ImageView>(R.id.btnBack)
+        btnBack.setOnClickListener { finish() }
+
+        // Fecha dinámica en el encabezado
+        val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
+        val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
+        tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
 
         // Conexion XML -> Kotlin
         val etEdad = findViewById<EditText>(R.id.txtNedad)
