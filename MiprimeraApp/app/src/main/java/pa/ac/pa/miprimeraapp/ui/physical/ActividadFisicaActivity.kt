@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.physical
 
 import android.content.Context
 import android.os.Bundle
@@ -11,10 +11,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.ui.custom.CircularProgressView
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Actividad_Fisica : AppCompatActivity() {
+class ActividadFisicaActivity : AppCompatActivity() {
 
     // Vistas principales
     private lateinit var circularProgress: CircularProgressView

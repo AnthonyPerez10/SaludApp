@@ -1,28 +1,25 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.menu
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import androidx.core.view.WindowCompat.enableEdgeToEdge
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.cardview.widget.CardView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.ui.weight.ControlPesoActivity
+import pa.ac.pa.miprimeraapp.ui.pressure.PresionArterialActivity
+import pa.ac.pa.miprimeraapp.ui.glucose.ControlGlucosaActivity
+import pa.ac.pa.miprimeraapp.ui.physical.ActividadFisicaActivity
+import pa.ac.pa.miprimeraapp.ui.hydration.HidratacionActivity
+import pa.ac.pa.miprimeraapp.ui.medication.MedicamentoActivity
 
-class activity_menu : AppCompatActivity() {
+class MenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_menu)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO) //Control de tema del sistema
-        /*ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }*/
 
         supportActionBar?.hide()
 
@@ -42,32 +39,32 @@ class activity_menu : AppCompatActivity() {
 
         // Accion de botones
         cardPeso.setOnClickListener { // Control del peso
-            val intent = Intent(this, Control_peso::class.java)
+            val intent = Intent(this, ControlPesoActivity::class.java)
             startActivity(intent)
         }
 
         cardArterial.setOnClickListener { // Control de presion Arterial
-            val intent = Intent(this, Presion_arterial::class.java)
+            val intent = Intent(this, PresionArterialActivity::class.java)
             startActivity(intent)
         }
 
         cardGlucosa.setOnClickListener { // Control de Glucosa
-            val intent = Intent(this, Control_Glucosa::class.java)
+            val intent = Intent(this, ControlGlucosaActivity::class.java)
             startActivity(intent)
         }
 
         cardFisico.setOnClickListener { // Control de Actividad Fisica
-            val intent = Intent(this, Actividad_Fisica::class.java)
+            val intent = Intent(this, ActividadFisicaActivity::class.java)
             startActivity(intent)
         }
 
         cardHidratacion.setOnClickListener { // Control de Hidratacion
-            val intent = Intent(this, Hidratacion_Activity::class.java)
+            val intent = Intent(this, HidratacionActivity::class.java)
             startActivity(intent)
         }
 
         cardMedicamentos.setOnClickListener { // Control de Medicamentos
-            val intent = Intent(this, Medicamento_Activity::class.java)
+            val intent = Intent(this, MedicamentoActivity::class.java)
             startActivity(intent)
         }
     }

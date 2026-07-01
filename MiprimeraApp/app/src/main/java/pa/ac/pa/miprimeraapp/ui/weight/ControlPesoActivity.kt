@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.weight
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,8 +9,9 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import pa.ac.pa.miprimeraapp.R
 
-class Control_peso : AppCompatActivity() {
+class ControlPesoActivity : AppCompatActivity() {
 
     // Variables globales para guardar último resultado
     private var ultimoPeso = 0.0
@@ -95,7 +96,7 @@ class Control_peso : AppCompatActivity() {
                     this,
                     "Estatura inválida",
                     Toast.LENGTH_SHORT
-               ).show()
+                ).show()
                 return@setOnClickListener
             }
 
@@ -153,7 +154,7 @@ class Control_peso : AppCompatActivity() {
             }
             val intent = Intent(
                 this,
-                historial_de_peso::class.java
+                HistorialPesoActivity::class.java
             )
 
             // Enviar resultados

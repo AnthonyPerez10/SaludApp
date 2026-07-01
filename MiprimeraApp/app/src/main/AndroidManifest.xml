@@ -12,31 +12,31 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MiPrimeraApp">
         <activity
-            android:name=".historial_de_peso"
+            android:name=".ui.weight.HistorialPesoActivity"
             android:exported="false" />
         <activity
-            android:name=".Medicamento_Activity"
+            android:name=".ui.medication.MedicamentoActivity"
             android:exported="false" />
         <activity
-            android:name=".Hidratacion_Activity"
+            android:name=".ui.hydration.HidratacionActivity"
             android:exported="false" />
         <activity
-            android:name=".Actividad_Fisica"
+            android:name=".ui.physical.ActividadFisicaActivity"
             android:exported="false" />
         <activity
-            android:name=".Control_Glucosa"
+            android:name=".ui.glucose.ControlGlucosaActivity"
             android:exported="false" />
         <activity
-            android:name=".Presion_arterial"
+            android:name=".ui.pressure.PresionArterialActivity"
             android:exported="false" />
         <activity
-            android:name=".Control_peso"
+            android:name=".ui.weight.ControlPesoActivity"
             android:exported="false" />
         <activity
-            android:name=".activity_menu"
+            android:name=".ui.menu.MenuActivity"
             android:exported="false" />
         <activity
-            android:name=".Splash"
+            android:name=".ui.menu.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,7 +45,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.menu.MainActivity"
             android:exported="false" />
     </application>
 

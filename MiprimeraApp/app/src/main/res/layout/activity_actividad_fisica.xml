@@ -108,7 +108,7 @@
                         android:layout_marginBottom="8dp" />
 
                     <!-- Custom Circular View -->
-                    <pa.ac.pa.miprimeraapp.CircularProgressView
+                    <pa.ac.pa.miprimeraapp.ui.custom.CircularProgressView
                         android:id="@+id/circularProgress"
                         android:layout_width="180dp"
                         android:layout_height="180dp"

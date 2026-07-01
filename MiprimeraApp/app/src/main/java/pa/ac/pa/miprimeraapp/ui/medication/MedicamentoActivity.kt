@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.medication
 
 import android.content.Context
 import android.graphics.Color
@@ -12,10 +12,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import org.json.JSONArray
 import org.json.JSONObject
+import pa.ac.pa.miprimeraapp.R
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Medicamento_Activity : AppCompatActivity() {
+class MedicamentoActivity : AppCompatActivity() {
 
     // Modelos de datos
     data class Medication(

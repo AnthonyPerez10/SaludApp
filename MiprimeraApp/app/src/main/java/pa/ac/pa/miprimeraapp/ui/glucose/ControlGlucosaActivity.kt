@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.glucose
 
 import android.os.Bundle
 import android.widget.Button
@@ -10,11 +10,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import pa.ac.pa.miprimeraapp.R
 import java.text.SimpleDateFormat // <-- Para capturar la hora actual
 import java.util.Locale
 import java.util.Calendar
 
-class Control_Glucosa : AppCompatActivity() {
+class ControlGlucosaActivity : AppCompatActivity() {
 
     // Declaración de las variables para las vistas
     private lateinit var etGlucoseValue: EditText
