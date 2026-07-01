@@ -34,6 +34,15 @@ class HidratacionActivity : AppCompatActivity() {
     private lateinit var sbCustomAmount: SeekBar
     private lateinit var btnConfirmCustomLog: Button
 
+    // Estadísticas de Hidratación Semanal
+    private lateinit var barWaterL: View
+    private lateinit var barWaterM: View
+    private lateinit var barWaterMi: View
+    private lateinit var barWaterJ: View
+    private lateinit var barWaterV: View
+    private lateinit var barWaterS: View
+    private lateinit var barWaterD: View
+
     // Formulario Meta
     private lateinit var etUserWeight: EditText
     private lateinit var rgUserGender: RadioGroup
@@ -87,6 +96,14 @@ class HidratacionActivity : AppCompatActivity() {
         tvCustomAmount = findViewById(R.id.tvCustomAmount)
         sbCustomAmount = findViewById(R.id.sbCustomAmount)
         btnConfirmCustomLog = findViewById(R.id.btnConfirmCustomLog)
+
+        barWaterL = findViewById(R.id.barWaterL)
+        barWaterM = findViewById(R.id.barWaterM)
+        barWaterMi = findViewById(R.id.barWaterMi)
+        barWaterJ = findViewById(R.id.barWaterJ)
+        barWaterV = findViewById(R.id.barWaterV)
+        barWaterS = findViewById(R.id.barWaterS)
+        barWaterD = findViewById(R.id.barWaterD)
 
         etUserWeight = findViewById(R.id.etUserWeight)
         rgUserGender = findViewById(R.id.rgUserGender)
@@ -176,14 +193,14 @@ class HidratacionActivity : AppCompatActivity() {
         // Peso * 35 ml (base recomendada por la OMS)
         var metaRecomendada = (peso * 35).toInt()
 
-        // Ajuste por nivel de actividad física
+        // Nivel de actividad física
         metaRecomendada += when (actividad) {
             "Moderado" -> 350
             "Muy Activo" -> 700
             else -> 0
         }
 
-        // Ajuste por género (hombres suelen requerir algo más)
+        // Género
         metaRecomendada += if (esMasculino) 250 else 0
 
         // Límite de seguridad
@@ -214,6 +231,9 @@ class HidratacionActivity : AppCompatActivity() {
         val diaGuardado = prefs.getString("hid_dia_actual", "")
 
         if (diaGuardado != hoyStr) {
+            // Guardar meta cumplida de ayer en el historial de la semana antes de reiniciar
+            guardarMetaAyer(prefs, diaGuardado)
+            
             waterToday = 0
             prefs.edit()
                 .putInt("hid_agua_hoy", 0)
@@ -244,10 +264,50 @@ class HidratacionActivity : AppCompatActivity() {
 
     private fun guardarDatos() {
         val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
-        prefs.edit().apply {
-            putInt("hid_agua_hoy", waterToday)
-            putInt("hid_meta_agua", waterGoal)
-            apply()
+        val editor = prefs.edit()
+        editor.putInt("hid_agua_hoy", waterToday)
+        editor.putInt("hid_meta_agua", waterGoal)
+
+        // Registrar cumplimiento de hoy
+        val calendar = Calendar.getInstance()
+        val dayIndex = when(calendar.get(Calendar.DAY_OF_WEEK)) {
+            Calendar.MONDAY -> 0
+            Calendar.TUESDAY -> 1
+            Calendar.WEDNESDAY -> 2
+            Calendar.THURSDAY -> 3
+            Calendar.FRIDAY -> 4
+            Calendar.SATURDAY -> 5
+            Calendar.SUNDAY -> 6
+            else -> 0
+        }
+        editor.putBoolean("hid_cumple_dia_$dayIndex", waterToday >= waterGoal)
+        editor.apply()
+    }
+
+    private fun guardarMetaAyer(prefs: android.content.SharedPreferences, diaAyer: String?) {
+        if (diaAyer.isNullOrEmpty()) return
+        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val cal = Calendar.getInstance()
+        try {
+            val dateAyer = sdf.parse(diaAyer)
+            if (dateAyer != null) {
+                cal.time = dateAyer
+                val dayIndex = when(cal.get(Calendar.DAY_OF_WEEK)) {
+                    Calendar.MONDAY -> 0
+                    Calendar.TUESDAY -> 1
+                    Calendar.WEDNESDAY -> 2
+                    Calendar.THURSDAY -> 3
+                    Calendar.FRIDAY -> 4
+                    Calendar.SATURDAY -> 5
+                    Calendar.SUNDAY -> 6
+                    else -> 0
+                }
+                val aguaAyer = prefs.getInt("hid_agua_hoy", 0)
+                val metaAyer = prefs.getInt("hid_meta_agua", 2000)
+                prefs.edit().putBoolean("hid_cumple_dia_$dayIndex", aguaAyer >= metaAyer).apply()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -287,5 +347,26 @@ class HidratacionActivity : AppCompatActivity() {
         }
 
         tvSmartTip.text = tip
+
+        // Actualizar barras de historial semanal de hidratación
+        val prefs = getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
+        val bars = arrayOf(barWaterL, barWaterM, barWaterMi, barWaterJ, barWaterV, barWaterS, barWaterD)
+        
+        for (i in 0..6) {
+            val cumple = prefs.getBoolean("hid_cumple_dia_$i", false)
+            val bar = bars[i]
+            
+            if (cumple) {
+                bar.setBackgroundColor(android.graphics.Color.parseColor("#0288D1")) // Azul agua meta
+            } else {
+                bar.setBackgroundColor(android.graphics.Color.parseColor("#B0BEC5")) // Gris claro
+            }
+
+            val heightDp = if (cumple) 90L else 30L
+            val density = resources.displayMetrics.density
+            val params = bar.layoutParams
+            params.height = (heightDp * density).toInt()
+            bar.layoutParams = params
+        }
     }
 }

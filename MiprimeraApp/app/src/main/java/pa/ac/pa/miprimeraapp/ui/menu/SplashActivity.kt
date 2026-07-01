@@ -6,9 +6,8 @@ import android.os.Handler
 import android.os.Looper
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.sharedpreferences.SharedPreferencesManager
 
 class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,9 +16,17 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
 
         supportActionBar?.hide()
+
+        val prefsManager = SharedPreferencesManager(this)
+
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, MenuActivity::class.java))
+            val intent = when {
+                prefsManager.isLoggedIn() -> Intent(this, MenuActivity::class.java)
+                prefsManager.isRegistered() -> Intent(this, LoginActivity::class.java)
+                else -> Intent(this, RegisterActivity::class.java)
+            }
+            startActivity(intent)
             finish()   // Evita que el usuario regrese al Splash
-        }, 5_000)
+        }, 3000) // Cambiado a 3 segundos para una mejor respuesta de UX
     }
 }
