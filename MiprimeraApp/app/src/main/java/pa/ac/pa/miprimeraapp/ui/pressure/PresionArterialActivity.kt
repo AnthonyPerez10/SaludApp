@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.pressure
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -15,9 +15,10 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import pa.ac.pa.miprimeraapp.R
 import java.util.Calendar
 
-class Presion_arterial : AppCompatActivity() {
+class PresionArterialActivity : AppCompatActivity() {
 
     // Variables del XML Presión Arterial Locales
     private lateinit var btnFecha: Button

@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.custom
 
 import android.animation.ValueAnimator
 import android.content.Context

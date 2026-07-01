@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.custom
 
 import android.content.Context
 import android.graphics.Canvas

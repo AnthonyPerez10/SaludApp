@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.menu
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,7 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowCompat.enableEdgeToEdge
+import pa.ac.pa.miprimeraapp.R
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, activity_menu::class.java))
+            startActivity(Intent(this, MenuActivity::class.java))
             finish()
         }, 1000)
     }

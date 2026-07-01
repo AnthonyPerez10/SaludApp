@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.weight
 
 import android.content.Context
 import android.os.Bundle
@@ -11,9 +11,10 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import pa.ac.pa.miprimeraapp.R
 import java.util.Locale
 
-class historial_de_peso : AppCompatActivity() {
+class HistorialPesoActivity : AppCompatActivity() {
 
     data class RegistroPeso(
         val fecha: String,

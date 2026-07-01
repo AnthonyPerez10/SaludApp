@@ -1,4 +1,4 @@
-package pa.ac.pa.miprimeraapp
+package pa.ac.pa.miprimeraapp.ui.hydration
 
 import android.content.Context
 import android.os.Bundle
@@ -8,10 +8,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.ui.custom.WaterWaveView
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Hidratacion_Activity : AppCompatActivity() {
+class HidratacionActivity : AppCompatActivity() {
 
     // Vistas principales
     private lateinit var tvWaterCounter: TextView
