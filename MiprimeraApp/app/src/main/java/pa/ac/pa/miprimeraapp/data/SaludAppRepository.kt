@@ -20,10 +20,15 @@ interface SaludAppRepository {
     fun updatePassword(newPassword: String)
     fun destroyAllData()
     fun logout()
+    fun getProfileImagePath(): String?
+    fun saveProfileImagePath(path: String?)
+    fun getFechaNacimiento(): String
+    fun saveFechaNacimiento(fecha: String)
 
     // --- Control de Peso e IMC ---
     fun getWeightHistory(): List<RegistroPeso>
     fun addWeightRecord(record: RegistroPeso)
+    fun deleteWeightRecord(record: RegistroPeso)
 
     // --- Hidratación ---
     fun getWaterToday(): Int
@@ -76,4 +81,5 @@ interface SaludAppRepository {
     // --- Presión Arterial ---
     fun getPressureRecords(): List<RegistroPresion>
     fun addPressureRecord(record: RegistroPresion)
+    fun deletePressureRecord(record: RegistroPresion)
 }

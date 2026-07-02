@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:background="@color/ui_weight_background"
     android:fitsSystemWindows="true"
-    tools:context=".ui.weight.HistorialPesoActivity">
+    tools:context=".ui.pressure.HistorialPresionActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,7 +36,7 @@
                 <ImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:src="@drawable/ic_peso"
+                    android:src="@drawable/ic_presion"
                     android:layout_marginEnd="16dp" />
 
                 <LinearLayout
@@ -47,7 +47,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Historial de Peso"
+                        android:text="Historial de Presión"
                         android:textColor="@color/peso_dark_blue"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -55,7 +55,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Evolución de mediciones e IMC"
+                        android:text="Mediciones de sístole, diástole y pulso"
                         android:textColor="@color/peso_gray_text"
                         android:textSize="12sp" />
                 </LinearLayout>

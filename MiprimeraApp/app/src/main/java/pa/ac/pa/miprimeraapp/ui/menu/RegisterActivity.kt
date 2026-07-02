@@ -27,6 +27,44 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var tvGoToLogin: TextView
 
     private lateinit var prefsManager: SharedPreferencesManager
+    private var fechaNacimientoSeleccionada: String? = null
+
+    private fun mostrarDatePicker() {
+        val calendario = java.util.Calendar.getInstance()
+        val anio = calendario.get(java.util.Calendar.YEAR)
+        val mes = calendario.get(java.util.Calendar.MONTH)
+        val dia = calendario.get(java.util.Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = android.app.DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
+            fechaNacimientoSeleccionada = String.format(java.util.Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
+            etEdad.setText(fechaNacimientoSeleccionada)
+            etEdad.error = null
+        }, anio - 20, mes, dia)
+
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+        datePickerDialog.show()
+    }
+
+    private fun calcularEdad(fecha: String): Int {
+        return try {
+            val parts = fecha.split("/")
+            val day = parts[0].toInt()
+            val month = parts[1].toInt() - 1
+            val year = parts[2].toInt()
+
+            val today = java.util.Calendar.getInstance()
+            val birth = java.util.Calendar.getInstance().apply {
+                set(year, month, day)
+            }
+            var age = today.get(java.util.Calendar.YEAR) - birth.get(java.util.Calendar.YEAR)
+            if (today.get(java.util.Calendar.DAY_OF_YEAR) < birth.get(java.util.Calendar.DAY_OF_YEAR)) {
+                age--
+            }
+            if (age < 0) 0 else age
+        } catch (e: Exception) {
+            25
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +98,10 @@ class RegisterActivity : AppCompatActivity() {
     private fun setupListeners() {
         btnEnviar.setOnClickListener {
             ejecutarRegistro()
+        }
+
+        etEdad.setOnClickListener {
+            mostrarDatePicker()
         }
 
         // Configurar toggle para ver la contraseña escrita
@@ -124,21 +166,15 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        if (edadStr.isEmpty()) {
-            etEdad.error = "La edad es obligatoria"
+        if (fechaNacimientoSeleccionada == null) {
+            etEdad.error = "La fecha de nacimiento es obligatoria"
             etEdad.requestFocus()
             return
         }
 
-        if (edadStr.length > 3) {
-            etEdad.error = "La edad ingresada no es válida"
-            etEdad.requestFocus()
-            return
-        }
-
-        val edad = edadStr.toIntOrNull()
-        if (edad == null || edad <= 0 || edad > 120) {
-            etEdad.error = "Ingresa una edad válida (1 a 120 años)"
+        val edad = calcularEdad(fechaNacimientoSeleccionada!!)
+        if (edad < 1 || edad > 120) {
+            etEdad.error = "Edad inválida (1 a 120 años)"
             etEdad.requestFocus()
             return
         }
@@ -186,6 +222,7 @@ class RegisterActivity : AppCompatActivity() {
 
         // Registrar usuario
         prefsManager.registerUser(nombre, apellido, edad, email, password, true)
+        prefsManager.saveFechaNacimiento(fechaNacimientoSeleccionada!!)
         
         Toast.makeText(this, "¡Registro completado con éxito!", Toast.LENGTH_LONG).show()
 

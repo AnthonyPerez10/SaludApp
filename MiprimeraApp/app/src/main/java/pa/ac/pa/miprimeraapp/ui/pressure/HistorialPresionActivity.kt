@@ -1,6 +1,7 @@
-package pa.ac.pa.miprimeraapp.ui.weight
+package pa.ac.pa.miprimeraapp.ui.pressure
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -14,26 +15,26 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
-import pa.ac.pa.miprimeraapp.data.RegistroPeso
+import pa.ac.pa.miprimeraapp.data.RegistroPresion
 import pa.ac.pa.miprimeraapp.data.SaludAppRepository
 import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
 import java.util.Locale
 
 /**
- * Actividad para mostrar el historial persistido de peso e IMC del usuario.
- * Permite buscar registros por fecha y eliminarlos de forma persistente.
+ * Actividad para mostrar el historial persistido de presión arterial y pulso del usuario.
+ * Ofrece buscador dinámico por fecha y opción de eliminar registros permanentemente.
  */
-class HistorialPesoActivity : AppCompatActivity() {
+class HistorialPresionActivity : AppCompatActivity() {
 
     private lateinit var repository: SaludAppRepository
-    private val listaRegistros = mutableListOf<RegistroPeso>()
-    private val listaFiltrada = mutableListOf<RegistroPeso>()
-    private lateinit var adapter: PesoAdapter
+    private val listaRegistros = mutableListOf<RegistroPresion>()
+    private val listaFiltrada = mutableListOf<RegistroPresion>()
+    private lateinit var adapter: PresionAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_historial_de_peso)
+        setContentView(R.layout.activity_historial_de_presion)
 
         repository = SaludAppRepositoryImpl(this)
 
@@ -47,16 +48,13 @@ class HistorialPesoActivity : AppCompatActivity() {
         val lvHistorial = findViewById<ListView>(R.id.listViewHistorial)
         val etSearchHistory = findViewById<EditText>(R.id.etSearchHistory)
 
-        // Cargar registros reales
         cargarRegistros()
 
-        // Inicializar el adaptador con callback de eliminación
-        adapter = PesoAdapter(this, listaFiltrada) { record ->
+        adapter = PresionAdapter(this, listaFiltrada) { record ->
             confirmarEliminacion(record)
         }
         lvHistorial.adapter = adapter
 
-        // Filtrar dinámicamente al escribir en el buscador
         etSearchHistory.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -68,12 +66,12 @@ class HistorialPesoActivity : AppCompatActivity() {
 
     private fun cargarRegistros() {
         listaRegistros.clear()
-        listaRegistros.addAll(repository.getWeightHistory())
+        listaRegistros.addAll(repository.getPressureRecords())
 
-        // Si la lista está vacía, poblar datos por defecto
+        // Si la lista está vacía, poblar registros de prueba por defecto
         if (listaRegistros.isEmpty()) {
             poblarRegistrosPorDefecto()
-            listaRegistros.addAll(repository.getWeightHistory())
+            listaRegistros.addAll(repository.getPressureRecords())
         }
 
         listaFiltrada.clear()
@@ -95,15 +93,15 @@ class HistorialPesoActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
-    private fun confirmarEliminacion(record: RegistroPeso) {
+    private fun confirmarEliminacion(record: RegistroPresion) {
         AlertDialog.Builder(this)
             .setTitle("Eliminar Registro")
-            .setMessage("¿Estás seguro de que deseas eliminar este registro de peso del historial?")
+            .setMessage("¿Estás seguro de que deseas eliminar este registro de presión del historial?")
             .setPositiveButton("Eliminar") { _, _ ->
-                // Eliminar del repositorio SQLite
-                repository.deleteWeightRecord(record)
+                // Eliminar de base de datos
+                repository.deletePressureRecord(record)
 
-                // Eliminar de las listas de memoria local
+                // Eliminar de las listas locales
                 listaRegistros.remove(record)
                 listaFiltrada.remove(record)
                 adapter.notifyDataSetChanged()
@@ -116,71 +114,59 @@ class HistorialPesoActivity : AppCompatActivity() {
 
     private fun poblarRegistrosPorDefecto() {
         val mockData = listOf(
-            RegistroPeso("29/06/2024 09:30 AM", 70.5, 23.9),
-            RegistroPeso("14/06/2024 10:15 AM", 72.0, 24.4),
-            RegistroPeso("30/05/2024 08:00 AM", 74.5, 25.2),
-            RegistroPeso("15/05/2024 09:45 AM", 77.0, 26.1),
-            RegistroPeso("30/04/2024 11:20 AM", 79.5, 26.9),
-            RegistroPeso("15/04/2024 08:30 AM", 82.0, 27.8),
-            RegistroPeso("31/03/2024 07:15 AM", 84.5, 28.6),
-            RegistroPeso("16/03/2024 10:00 AM", 86.2, 29.2),
-            RegistroPeso("01/03/2024 09:00 AM", 88.0, 29.8),
-            RegistroPeso("15/02/2024 08:15 AM", 90.5, 30.7),
-            RegistroPeso("31/01/2024 10:30 AM", 92.0, 31.2),
-            RegistroPeso("16/01/2024 09:20 AM", 93.8, 31.8),
-            RegistroPeso("01/01/2024 08:10 AM", 95.5, 32.4)
+            RegistroPresion("29/06/2026", "09:30 AM", 118, 78, 72, "Izquierdo", "Normal"),
+            RegistroPresion("14/06/2026", "10:15 AM", 125, 83, 74, "Izquierdo", "Elevada"),
+            RegistroPresion("30/05/2026", "08:00 AM", 135, 87, 68, "Derecho", "Hipertensión Grado 1"),
+            RegistroPresion("15/05/2026", "09:45 AM", 142, 92, 80, "Izquierdo", "Hipertensión Grado 2")
         )
         for (item in mockData.reversed()) {
-            repository.addWeightRecord(item)
+            repository.addPressureRecord(item)
         }
     }
 
     /**
-     * Adaptador personalizado para renderizar la lista de registros de peso en el ListView.
+     * Adaptador personalizado para renderizar la lista de registros de presión.
      */
-    class PesoAdapter(
+    class PresionAdapter(
         private val context: Context,
-        private val data: List<RegistroPeso>,
-        private val onDeleteClicked: (RegistroPeso) -> Unit
+        private val data: List<RegistroPresion>,
+        private val onDeleteClicked: (RegistroPresion) -> Unit
     ) : BaseAdapter() {
 
         override fun getCount(): Int = data.size
-
         override fun getItem(position: Int): Any = data[position]
-
         override fun getItemId(position: Int): Long = position.toLong()
 
-        override fun getView(
-            position: Int,
-            convertView: View?,
-            parent: ViewGroup?
-        ): View {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
             val view = convertView ?: LayoutInflater.from(context)
-                .inflate(R.layout.ly_historialpeso, parent, false)
+                .inflate(R.layout.ly_historialpresion, parent, false)
 
             val item = data[position]
 
-            val ivIcono = view.findViewById<ImageView>(R.id.ivIconoIMC)
-            val tvFecha = view.findViewById<TextView>(R.id.tvFecha)
-            val tvPesoIMC = view.findViewById<TextView>(R.id.tvPesoIMC)
+            val tvFechaHora = view.findViewById<TextView>(R.id.tvFechaHora)
+            val tvPresionValores = view.findViewById<TextView>(R.id.tvPresionValores)
+            val tvBrazo = view.findViewById<TextView>(R.id.tvBrazo)
+            val tvClasificacion = view.findViewById<TextView>(R.id.tvClasificacion)
             val btnDeleteRecord = view.findViewById<ImageView>(R.id.btnDeleteRecord)
 
-            // Textos descriptivos del registro
-            tvFecha.text = "Fecha: ${item.fecha}"
-            tvPesoIMC.text = String.format(Locale.getDefault(), "Peso: %.1f kg | IMC: %.1f", item.peso, item.imc)
+            tvFechaHora.text = "${item.fecha} ${item.hora}"
+            tvPresionValores.text = "${item.sistolica}/${item.diastolica} mmHg  •  Pulso: ${item.pulso} BPM"
+            tvBrazo.text = "Brazo ${item.brazo}"
+            tvClasificacion.text = item.clasificacion.uppercase(Locale.getDefault())
 
-            // Asignar el icono visual del IMC según su categoría de salud
-            val imc = item.imc
-            when {
-                imc < 18.5 -> ivIcono.setImageResource(R.drawable.bajopeso)
-                imc < 25.0 -> ivIcono.setImageResource(R.drawable.normal)
-                imc < 30.0 -> ivIcono.setImageResource(R.drawable.sobrepeso)
-                imc < 35.0 -> ivIcono.setImageResource(R.drawable.obesidad1)
-                imc < 40.0 -> ivIcono.setImageResource(R.drawable.obesidad2)
-                else -> ivIcono.setImageResource(R.drawable.obesidad3)
+            // Colorear el badge de clasificación según su rango
+            when (item.clasificacion) {
+                "Normal" -> {
+                    tvClasificacion.setBackgroundColor(Color.parseColor("#2E7D32")) // Verde
+                }
+                "Elevada" -> {
+                    tvClasificacion.setBackgroundColor(Color.parseColor("#F57C00")) // Naranja
+                }
+                else -> {
+                    tvClasificacion.setBackgroundColor(Color.parseColor("#D32F2F")) // Rojo
+                }
             }
 
-            // Enlazar evento de clic para eliminación
             btnDeleteRecord.setOnClickListener {
                 onDeleteClicked(item)
             }

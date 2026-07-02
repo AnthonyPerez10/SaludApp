@@ -121,6 +121,20 @@
                     android:elevation="4dp"
                     android:layout_marginBottom="20dp" />
 
+                <!-- Link a Olvidé Contraseña -->
+                <TextView
+                    android:id="@+id/tvForgotPassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="¿Has olvidado tu contraseña?"
+                    android:textColor="#D32F2F"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
                 <!-- Link a Registro -->
                 <TextView
                     android:id="@+id/tvGoToRegister"

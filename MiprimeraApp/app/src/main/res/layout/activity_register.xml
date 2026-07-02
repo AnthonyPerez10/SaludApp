@@ -103,11 +103,11 @@
                     android:textSize="14sp"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Edad -->
+                <!-- Fecha de Nacimiento -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Edad"
+                    android:text="Fecha de Nacimiento"
                     android:textColor="@color/peso_dark_blue"
                     android:textSize="12sp"
                     android:textStyle="bold"
@@ -118,8 +118,10 @@
                     style="@style/EditTextRounded"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:hint="Ej: 25"
-                    android:inputType="number"
+                    android:hint="Seleccionar Fecha"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:inputType="none"
                     android:textSize="14sp"
                     android:layout_marginBottom="16dp" />
 

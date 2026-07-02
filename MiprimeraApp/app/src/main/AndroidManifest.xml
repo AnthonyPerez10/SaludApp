@@ -20,6 +20,12 @@
             android:name=".ui.weight.HistorialPesoActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.pressure.HistorialPresionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.menu.PerfilActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.medication.MedicamentoActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />

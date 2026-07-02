@@ -1,17 +1,163 @@
 package pa.ac.pa.miprimeraapp.data
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.SharedPreferences
 import org.json.JSONArray
 import org.json.JSONObject
+import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /**
- * Implementación de SaludAppRepository basada en SharedPreferences.
- * Simula una base de datos local serializando listas complejas en cadenas JSON.
+ * Implementación de SaludAppRepository basada en SQLite encriptado (SQLCipher) para históricos
+ * y SharedPreferences para configuraciones y consultas rápidas de estado.
  */
-class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
+class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository {
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
+
+    init {
+        // Cargar o generar la contraseña única de la base de datos cifrada
+        getOrCreatePassphrase()
+        // Migrar datos de SharedPreferences a SQLite encriptada en primer inicio
+        migrateExistingDataFromSharedPreferences()
+    }
+
+    private fun getOrCreatePassphrase(): String {
+        var key = sharedPreferences.getString("db_passphrase", null)
+        if (key == null) {
+            key = java.util.UUID.randomUUID().toString() + java.util.UUID.randomUUID().toString()
+            sharedPreferences.edit().putString("db_passphrase", key).apply()
+        }
+        return key
+    }
+
+    private fun getDb(): SQLiteDatabase {
+        return SecureDatabaseManager.getDatabase(context, getOrCreatePassphrase())
+    }
+
+    private fun migrateExistingDataFromSharedPreferences() {
+        try {
+            val db = getDb()
+
+            // 1. Migrar Peso
+            val weightJson = sharedPreferences.getString(KEY_WEIGHT_HISTORY, null)
+            if (!weightJson.isNullOrEmpty()) {
+                try {
+                    val array = JSONArray(weightJson)
+                    db.beginTransaction()
+                    try {
+                        for (i in 0 until array.length()) {
+                            val obj = array.getJSONObject(i)
+                            val values = ContentValues().apply {
+                                put("fecha", obj.getString("fecha"))
+                                put("peso", obj.getDouble("peso"))
+                                put("imc", obj.getDouble("imc"))
+                            }
+                            db.insert("weight_records", null, values)
+                        }
+                        db.setTransactionSuccessful()
+                    } finally {
+                        db.endTransaction()
+                    }
+                    sharedPreferences.edit().remove(KEY_WEIGHT_HISTORY).apply()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // 2. Migrar Glucosa
+            val glucoseJson = sharedPreferences.getString(KEY_GLUCOSE_HISTORY, null)
+            if (!glucoseJson.isNullOrEmpty()) {
+                try {
+                    val array = JSONArray(glucoseJson)
+                    db.beginTransaction()
+                    try {
+                        for (i in 0 until array.length()) {
+                            val obj = array.getJSONObject(i)
+                            val values = ContentValues().apply {
+                                put("valor", obj.getDouble("valor"))
+                                put("tipo", obj.getString("tipo"))
+                                put("notas", obj.optString("notas", "")) // compatibilidad de notas
+                                put("hora", obj.getString("hora"))
+                                put("fecha", obj.getString("fecha"))
+                            }
+                            db.insert("glucose_records", null, values)
+                        }
+                        db.setTransactionSuccessful()
+                    } finally {
+                        db.endTransaction()
+                    }
+                    sharedPreferences.edit().remove(KEY_GLUCOSE_HISTORY).apply()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // 3. Migrar Presión
+            val pressureJson = sharedPreferences.getString(KEY_PRESSURE_HISTORY, null)
+            if (!pressureJson.isNullOrEmpty()) {
+                try {
+                    val array = JSONArray(pressureJson)
+                    db.beginTransaction()
+                    try {
+                        for (i in 0 until array.length()) {
+                            val obj = array.getJSONObject(i)
+                            val values = ContentValues().apply {
+                                put("fecha", obj.getString("fecha"))
+                                put("hora", obj.getString("hora"))
+                                put("sistolica", obj.getInt("sistolica"))
+                                put("diastolica", obj.getInt("diastolica"))
+                                put("pulso", obj.getInt("pulso"))
+                                put("brazo", obj.getString("brazo"))
+                                put("clasificacion", obj.getString("clasificacion"))
+                            }
+                            db.insert("pressure_records", null, values)
+                        }
+                        db.setTransactionSuccessful()
+                    } finally {
+                        db.endTransaction()
+                    }
+                    sharedPreferences.edit().remove(KEY_PRESSURE_HISTORY).apply()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            // 4. Migrar Medicamentos
+            val medJson = sharedPreferences.getString(KEY_MED_LIST, null)
+            if (!medJson.isNullOrEmpty()) {
+                try {
+                    val array = JSONArray(medJson)
+                    db.beginTransaction()
+                    try {
+                        for (i in 0 until array.length()) {
+                            val obj = array.getJSONObject(i)
+                            val values = ContentValues().apply {
+                                put("id", obj.getString("id"))
+                                put("name", obj.getString("name"))
+                                put("doseQty", obj.getInt("doseQty"))
+                                put("doseType", obj.getString("doseType"))
+                                put("frequency", obj.getString("frequency"))
+                                put("durationDays", obj.getInt("durationDays"))
+                                put("initialBoxSize", obj.getInt("initialBoxSize"))
+                                put("inventory", obj.getInt("inventory"))
+                                put("dateRegistered", obj.getString("dateRegistered"))
+                            }
+                            db.insert("medications", null, values)
+                        }
+                        db.setTransactionSuccessful()
+                    } finally {
+                        db.endTransaction()
+                    }
+                    sharedPreferences.edit().remove(KEY_MED_LIST).apply()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     companion object {
         // Clases de Claves de Preferencias
@@ -24,8 +170,11 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
         private const val KEY_CORREO = "user_correo"
         private const val KEY_SHARE_DATA = "user_share_data"
 
-        // Claves Peso
+        // Claves Históricos en SharedPreferences (para migración)
         private const val KEY_WEIGHT_HISTORY = "weight_history_json"
+        private const val KEY_GLUCOSE_HISTORY = "glucose_history_json"
+        private const val KEY_PRESSURE_HISTORY = "pressure_history_json"
+        private const val KEY_MED_LIST = "med_list_json"
 
         // Claves Hidratación
         private const val KEY_WATER_TODAY = "hid_agua_hoy"
@@ -42,16 +191,9 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
         private const val KEY_PHYS_LAST_DATE = "actividad_ultima_fecha"
         private const val KEY_PHYS_CURRENT_DAY = "actividad_dia_actual"
 
-        // Claves Medicamentos
-        private const val KEY_MED_LIST = "med_list_json"
+        // Claves Medicamentos (Configuración rápida)
         private const val KEY_MED_CURRENT_DAY = "med_dia_actual"
         private const val KEY_MED_TAKEN_TODAY = "med_tomas_hoy"
-
-        // Claves Glucosa
-        private const val KEY_GLUCOSE_HISTORY = "glucose_history_json"
-
-        // Claves Presión Arterial
-        private const val KEY_PRESSURE_HISTORY = "pressure_history_json"
     }
 
     // --- Perfil de Usuario y Autenticación ---
@@ -68,6 +210,8 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
             putBoolean(KEY_IS_LOGGED_IN, true)
             apply()
         }
+        // Asegurar la contraseña de la base de datos cifrada
+        getOrCreatePassphrase()
     }
 
     override fun loginUser(contrasena: String): Boolean {
@@ -102,6 +246,7 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
     }
 
     override fun destroyAllData() {
+        SecureDatabaseManager.destroyDatabase(context)
         sharedPreferences.edit().clear().apply()
     }
 
@@ -109,46 +254,65 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
         sharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, false).apply()
     }
 
+    override fun getProfileImagePath(): String? = sharedPreferences.getString("profile_image_path", null)
+
+    override fun saveProfileImagePath(path: String?) {
+        sharedPreferences.edit().putString("profile_image_path", path).apply()
+    }
+
+    override fun getFechaNacimiento(): String = sharedPreferences.getString("user_fecha_nacimiento", "") ?: ""
+
+    override fun saveFechaNacimiento(fecha: String) {
+        sharedPreferences.edit().putString("user_fecha_nacimiento", fecha).apply()
+    }
+
     // --- Control de Peso e IMC ---
 
     override fun getWeightHistory(): List<RegistroPeso> {
         val list = mutableListOf<RegistroPeso>()
-        val jsonStr = sharedPreferences.getString(KEY_WEIGHT_HISTORY, null)
-        if (!jsonStr.isNullOrEmpty()) {
-            try {
-                val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
+        try {
+            val db = getDb()
+            val cursor = db.rawQuery("SELECT fecha, peso, imc FROM weight_records ORDER BY id DESC", null)
+            if (cursor.moveToFirst()) {
+                do {
                     list.add(
                         RegistroPeso(
-                            fecha = obj.getString("fecha"),
-                            peso = obj.getDouble("peso"),
-                            imc = obj.getDouble("imc")
+                            fecha = cursor.getString(0),
+                            peso = cursor.getDouble(1),
+                            imc = cursor.getDouble(2)
                         )
                     )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+                } while (cursor.moveToNext())
             }
+            cursor.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return list
     }
 
     override fun addWeightRecord(record: RegistroPeso) {
-        val currentHistory = getWeightHistory().toMutableList()
-        currentHistory.add(0, record) // Añadimos al inicio (más reciente primero)
-        
         try {
-            val array = JSONArray()
-            for (item in currentHistory) {
-                val obj = JSONObject().apply {
-                    put("fecha", item.fecha)
-                    put("peso", item.peso)
-                    put("imc", item.imc)
-                }
-                array.put(obj)
+            val db = getDb()
+            val values = ContentValues().apply {
+                put("fecha", record.fecha)
+                put("peso", record.peso)
+                put("imc", record.imc)
             }
-            sharedPreferences.edit().putString(KEY_WEIGHT_HISTORY, array.toString()).apply()
+            db.insert("weight_records", null, values)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun deleteWeightRecord(record: RegistroPeso) {
+        try {
+            val db = getDb()
+            db.delete(
+                "weight_records",
+                "fecha = ? AND peso = ? AND imc = ?",
+                arrayOf(record.fecha, record.peso.toString(), record.imc.toString())
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -256,51 +420,57 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
 
     override fun getMedications(): List<Medication> {
         val list = mutableListOf<Medication>()
-        val jsonStr = sharedPreferences.getString(KEY_MED_LIST, null)
-        if (!jsonStr.isNullOrEmpty()) {
-            try {
-                val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
+        try {
+            val db = getDb()
+            val cursor = db.rawQuery("SELECT id, name, doseQty, doseType, frequency, durationDays, initialBoxSize, inventory, dateRegistered FROM medications", null)
+            if (cursor.moveToFirst()) {
+                do {
                     list.add(
                         Medication(
-                            id = obj.getString("id"),
-                            name = obj.getString("name"),
-                            doseQty = obj.getInt("doseQty"),
-                            doseType = obj.getString("doseType"),
-                            frequency = obj.getString("frequency"),
-                            durationDays = obj.getInt("durationDays"),
-                            initialBoxSize = obj.getInt("initialBoxSize"),
-                            inventory = obj.getInt("inventory"),
-                            dateRegistered = obj.getString("dateRegistered")
+                            id = cursor.getString(0),
+                            name = cursor.getString(1),
+                            doseQty = cursor.getInt(2),
+                            doseType = cursor.getString(3),
+                            frequency = cursor.getString(4),
+                            durationDays = cursor.getInt(5),
+                            initialBoxSize = cursor.getInt(6),
+                            inventory = cursor.getInt(7),
+                            dateRegistered = cursor.getString(8)
                         )
                     )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+                } while (cursor.moveToNext())
             }
+            cursor.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return list
     }
 
     override fun saveMedications(meds: List<Medication>) {
         try {
-            val array = JSONArray()
-            for (med in meds) {
-                val obj = JSONObject().apply {
-                    put("id", med.id)
-                    put("name", med.name)
-                    put("doseQty", med.doseQty)
-                    put("doseType", med.doseType)
-                    put("frequency", med.frequency)
-                    put("durationDays", med.durationDays)
-                    put("initialBoxSize", med.initialBoxSize)
-                    put("inventory", med.inventory)
-                    put("dateRegistered", med.dateRegistered)
+            val db = getDb()
+            db.beginTransaction()
+            try {
+                db.delete("medications", null, null)
+                for (med in meds) {
+                    val values = ContentValues().apply {
+                        put("id", med.id)
+                        put("name", med.name)
+                        put("doseQty", med.doseQty)
+                        put("doseType", med.doseType)
+                        put("frequency", med.frequency)
+                        put("durationDays", med.durationDays)
+                        put("initialBoxSize", med.initialBoxSize)
+                        put("inventory", med.inventory)
+                        put("dateRegistered", med.dateRegistered)
+                    }
+                    db.insert("medications", null, values)
                 }
-                array.put(obj)
+                db.setTransactionSuccessful()
+            } finally {
+                db.endTransaction()
             }
-            sharedPreferences.edit().putString(KEY_MED_LIST, array.toString()).apply()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -332,46 +502,40 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
 
     override fun getGlucoseRecords(): List<RegistroGlucosa> {
         val list = mutableListOf<RegistroGlucosa>()
-        val jsonStr = sharedPreferences.getString(KEY_GLUCOSE_HISTORY, null)
-        if (!jsonStr.isNullOrEmpty()) {
-            try {
-                val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
+        try {
+            val db = getDb()
+            val cursor = db.rawQuery("SELECT valor, tipo, notas, hora, fecha FROM glucose_records ORDER BY id DESC", null)
+            if (cursor.moveToFirst()) {
+                do {
                     list.add(
                         RegistroGlucosa(
-                            valor = obj.getDouble("valor"),
-                            tipo = obj.getString("tipo"),
-                            notas = obj.getString("notas"),
-                            hora = obj.getString("hora"),
-                            fecha = obj.getString("fecha")
+                            valor = cursor.getDouble(0),
+                            tipo = cursor.getString(1),
+                            notas = cursor.getString(2),
+                            hora = cursor.getString(3),
+                            fecha = cursor.getString(4)
                         )
                     )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+                } while (cursor.moveToNext())
             }
+            cursor.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return list
     }
 
     override fun addGlucoseRecord(record: RegistroGlucosa) {
-        val currentHistory = getGlucoseRecords().toMutableList()
-        currentHistory.add(0, record)
-        
         try {
-            val array = JSONArray()
-            for (item in currentHistory) {
-                val obj = JSONObject().apply {
-                    put("valor", item.valor)
-                    put("tipo", item.tipo)
-                    put("notas", item.notas)
-                    put("hora", item.hora)
-                    put("fecha", item.fecha)
-                }
-                array.put(obj)
+            val db = getDb()
+            val values = ContentValues().apply {
+                put("valor", record.valor)
+                put("tipo", record.tipo)
+                put("notas", record.notas)
+                put("hora", record.hora)
+                put("fecha", record.fecha)
             }
-            sharedPreferences.edit().putString(KEY_GLUCOSE_HISTORY, array.toString()).apply()
+            db.insert("glucose_records", null, values)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -381,52 +545,66 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
 
     override fun getPressureRecords(): List<RegistroPresion> {
         val list = mutableListOf<RegistroPresion>()
-        val jsonStr = sharedPreferences.getString(KEY_PRESSURE_HISTORY, null)
-        if (!jsonStr.isNullOrEmpty()) {
-            try {
-                val array = JSONArray(jsonStr)
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
+        try {
+            val db = getDb()
+            val cursor = db.rawQuery("SELECT fecha, hora, sistolica, diastolica, pulso, brazo, clasificacion FROM pressure_records ORDER BY id DESC", null)
+            if (cursor.moveToFirst()) {
+                do {
                     list.add(
                         RegistroPresion(
-                            fecha = obj.getString("fecha"),
-                            hora = obj.getString("hora"),
-                            sistolica = obj.getInt("sistolica"),
-                            diastolica = obj.getInt("diastolica"),
-                            pulso = obj.getInt("pulso"),
-                            brazo = obj.getString("brazo"),
-                            clasificacion = obj.getString("clasificacion")
+                            fecha = cursor.getString(0),
+                            hora = cursor.getString(1),
+                            sistolica = cursor.getInt(2),
+                            diastolica = cursor.getInt(3),
+                            pulso = cursor.getInt(4),
+                            brazo = cursor.getString(5),
+                            clasificacion = cursor.getString(6)
                         )
                     )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+                } while (cursor.moveToNext())
             }
+            cursor.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return list
     }
 
     override fun addPressureRecord(record: RegistroPresion) {
-        val currentHistory = getPressureRecords().toMutableList()
-        currentHistory.add(0, record)
-        
         try {
-            val array = JSONArray()
-            for (item in currentHistory) {
-                val obj = JSONObject().apply {
-                    put("fecha", item.fecha)
-                    put("hora", item.hora)
-                    put("sistolica", item.sistolica)
-                    put("diastolica", item.diastolica)
-                    put("pulso", item.pulso)
-                    put("brazo", item.brazo)
-                    put("clasificacion", item.clasificacion)
-                }
-                array.put(obj)
+            val db = getDb()
+            val values = ContentValues().apply {
+                put("fecha", record.fecha)
+                put("hora", record.hora)
+                put("sistolica", record.sistolica)
+                put("diastolica", record.diastolica)
+                put("pulso", record.pulso)
+                put("brazo", record.brazo)
+                put("clasificacion", record.clasificacion)
             }
-            sharedPreferences.edit().putString(KEY_PRESSURE_HISTORY, array.toString()).apply()
+            db.insert("pressure_records", null, values)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun deletePressureRecord(record: RegistroPresion) {
+        try {
+            val db = getDb()
+            db.delete(
+                "pressure_records",
+                "fecha = ? AND hora = ? AND sistolica = ? AND diastolica = ? AND pulso = ?",
+                arrayOf(
+                    record.fecha,
+                    record.hora,
+                    record.sistolica.toString(),
+                    record.diastolica.toString(),
+                    record.pulso.toString()
+                )
+            )
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 }
+
