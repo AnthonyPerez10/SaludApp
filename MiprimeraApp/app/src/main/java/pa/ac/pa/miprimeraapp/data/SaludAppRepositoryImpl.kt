@@ -21,6 +21,7 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
         private const val KEY_APELLIDO = "user_apellido"
         private const val KEY_EDAD = "user_edad"
         private const val KEY_PASSWORD = "user_password"
+        private const val KEY_CORREO = "user_correo"
         private const val KEY_SHARE_DATA = "user_share_data"
 
         // Claves Peso
@@ -55,11 +56,12 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
 
     // --- Perfil de Usuario y Autenticación ---
 
-    override fun registerUser(nombre: String, apellido: String, edad: Int, contrasena: String, shareData: Boolean) {
+    override fun registerUser(nombre: String, apellido: String, edad: Int, correo: String, contrasena: String, shareData: Boolean) {
         sharedPreferences.edit().apply {
             putString(KEY_NOMBRE, nombre)
             putString(KEY_APELLIDO, apellido)
             putInt(KEY_EDAD, edad)
+            putString(KEY_CORREO, correo)
             putString(KEY_PASSWORD, contrasena)
             putBoolean(KEY_SHARE_DATA, shareData)
             putBoolean(KEY_IS_REGISTERED, true)
@@ -87,6 +89,21 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
     override fun getApellido(): String = sharedPreferences.getString(KEY_APELLIDO, "") ?: ""
 
     override fun getEdad(): Int = sharedPreferences.getInt(KEY_EDAD, 0)
+
+    override fun getCorreo(): String = sharedPreferences.getString(KEY_CORREO, "") ?: ""
+
+    override fun verifyPassword(password: String): Boolean {
+        val saved = sharedPreferences.getString(KEY_PASSWORD, null)
+        return saved == password
+    }
+
+    override fun updatePassword(newPassword: String) {
+        sharedPreferences.edit().putString(KEY_PASSWORD, newPassword).apply()
+    }
+
+    override fun destroyAllData() {
+        sharedPreferences.edit().clear().apply()
+    }
 
     override fun logout() {
         sharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, false).apply()
@@ -221,6 +238,18 @@ class SaludAppRepositoryImpl(context: Context) : SaludAppRepository {
 
     override fun savePhysicalHistoryDay(dayIndex: Int, completed: Boolean) {
         sharedPreferences.edit().putBoolean("actividad_cumple_dia_$dayIndex", completed).apply()
+    }
+
+    override fun getPhysicalStepsYesterday(): Float = sharedPreferences.getFloat("actividad_pasos_ayer", 0f)
+
+    override fun savePhysicalStepsYesterday(steps: Float) {
+        sharedPreferences.edit().putFloat("actividad_pasos_ayer", steps).apply()
+    }
+
+    override fun getStreakNotificationSentToday(): Boolean = sharedPreferences.getBoolean("actividad_notif_racha_enviada", false)
+
+    override fun saveStreakNotificationSentToday(sent: Boolean) {
+        sharedPreferences.edit().putBoolean("actividad_notif_racha_enviada", sent).apply()
     }
 
     // --- Medicamentos ---

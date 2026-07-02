@@ -8,13 +8,17 @@ package pa.ac.pa.miprimeraapp.data
 interface SaludAppRepository {
 
     // --- Perfil de Usuario y Autenticación ---
-    fun registerUser(nombre: String, apellido: String, edad: Int, contrasena: String, shareData: Boolean)
+    fun registerUser(nombre: String, apellido: String, edad: Int, correo: String, contrasena: String, shareData: Boolean)
     fun loginUser(contrasena: String): Boolean
     fun isLoggedIn(): Boolean
     fun isRegistered(): Boolean
     fun getNombre(): String
     fun getApellido(): String
     fun getEdad(): Int
+    fun getCorreo(): String
+    fun verifyPassword(password: String): Boolean
+    fun updatePassword(newPassword: String)
+    fun destroyAllData()
     fun logout()
 
     // --- Control de Peso e IMC ---
@@ -50,6 +54,10 @@ interface SaludAppRepository {
     fun savePhysicalCurrentDay(day: String)
     fun getPhysicalHistoryDay(dayIndex: Int): Boolean
     fun savePhysicalHistoryDay(dayIndex: Int, completed: Boolean)
+    fun getPhysicalStepsYesterday(): Float
+    fun savePhysicalStepsYesterday(steps: Float)
+    fun getStreakNotificationSentToday(): Boolean
+    fun saveStreakNotificationSentToday(sent: Boolean)
 
     // --- Medicamentos ---
     fun getMedications(): List<Medication>

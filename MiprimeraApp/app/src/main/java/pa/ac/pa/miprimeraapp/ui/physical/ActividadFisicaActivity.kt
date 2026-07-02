@@ -1,28 +1,33 @@
 package pa.ac.pa.miprimeraapp.ui.physical
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.os.SystemClock
 import android.view.View
 import android.widget.Button
-import android.widget.Chronometer
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
 import pa.ac.pa.miprimeraapp.data.SaludAppRepository
 import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
+import pa.ac.pa.miprimeraapp.services.PedometerService
 import pa.ac.pa.miprimeraapp.ui.custom.CircularProgressView
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * Actividad que gestiona los pasos diarios, calorías quemadas y racha de ejercicio.
- * Utiliza un cronómetro para registrar actividades físicas y las persiste mediante el repositorio.
+ * Utiliza un servicio en segundo plano con acelerómetro para funcionar como podómetro automático.
  */
 class ActividadFisicaActivity : AppCompatActivity() {
 
@@ -48,27 +53,26 @@ class ActividadFisicaActivity : AppCompatActivity() {
     private lateinit var barS: View
     private lateinit var barD: View
 
-    // Cronómetro Overlay
-    private lateinit var layoutChronometer: View
-    private lateinit var tvChronoTitle: TextView
-    private lateinit var tvChronoTime: Chronometer
-    private lateinit var btnChronoPlay: View
-    private lateinit var ivChronoPlayIcon: ImageView
-    private lateinit var btnChronoStop: View
-
-    // Botones Rápidos de Actividades
-    private lateinit var btnRun: View
-    private lateinit var btnStrength: View
-    private lateinit var btnYoga: View
-    private lateinit var btnBike: View
-
     // Variables de Estado Local
     private var stepsToday = 0f
     private var caloriesToday = 0f
     private var streakDays = 0
-    private var isChronoRunning = false
-    private var timeWhenPaused: Long = 0
-    private var selectedChronoType = "Correr"
+
+    private val REQUEST_PERMISSIONS_CODE = 1002
+
+    // Receptor para obtener pasos del servicio en tiempo real
+    private val stepUpdateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "pa.ac.pa.miprimeraapp.STEP_UPDATE") {
+                stepsToday = intent.getFloatExtra("steps", 0f)
+                // Estimar calorías quemadas basadas en los pasos reales (0.04 kcal por paso)
+                caloriesToday = stepsToday * 0.04f
+                repository.savePhysicalCaloriesToday(caloriesToday)
+                
+                actualizarUI()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,10 +93,30 @@ class ActividadFisicaActivity : AppCompatActivity() {
         setupListeners()
         actualizarUI()
 
+        // Solicitar permisos e iniciar el podómetro en segundo plano
+        checkAndRequestPermissions()
+
         // Fecha dinámica en el encabezado
         val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
         val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
         tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Registrar receptor de broadcast para recibir pasos del PedometerService
+        val filter = IntentFilter("pa.ac.pa.miprimeraapp.STEP_UPDATE")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(stepUpdateReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(stepUpdateReceiver, filter)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Desregistrar receptor
+        unregisterReceiver(stepUpdateReceiver)
     }
 
     private fun inicializarVistas() {
@@ -112,107 +136,63 @@ class ActividadFisicaActivity : AppCompatActivity() {
         barV = findViewById(R.id.barV)
         barS = findViewById(R.id.barS)
         barD = findViewById(R.id.barD)
-
-        layoutChronometer = findViewById(R.id.layoutChronometer)
-        tvChronoTitle = findViewById(R.id.tvChronoTitle)
-        tvChronoTime = findViewById(R.id.tvChronoTime)
-        btnChronoPlay = findViewById(R.id.btnChronoPlay)
-        ivChronoPlayIcon = findViewById(R.id.ivChronoPlayIcon)
-        btnChronoStop = findViewById(R.id.btnChronoStop)
-
-        btnRun = findViewById(R.id.btnRun)
-        btnStrength = findViewById(R.id.btnStrength)
-        btnYoga = findViewById(R.id.btnYoga)
-        btnBike = findViewById(R.id.btnBike)
     }
 
     private fun setupListeners() {
-        // Agregar Pasos rápidos (+1000)
+        // Agregar Pasos rápidos (+1000) enviando comando al servicio en segundo plano
         btnAddSteps.setOnClickListener {
-            stepsToday += 1000f
-            if (stepsToday > 25000f) stepsToday = 25000f
-            
-            guardarProgresoDiario()
-            actualizarUI()
-            Toast.makeText(this, "+1000 Pasos agregados", Toast.LENGTH_SHORT).show()
-        }
-
-        // Configuración de botones de tipos de ejercicio
-        btnRun.setOnClickListener { mostrarCronometro("Correr") }
-        btnStrength.setOnClickListener { mostrarCronometro("Fuerza") }
-        btnYoga.setOnClickListener { mostrarCronometro("Yoga") }
-        btnBike.setOnClickListener { mostrarCronometro("Ciclismo") }
-
-        // Controladores de estado del cronómetro
-        btnChronoPlay.setOnClickListener {
-            if (isChronoRunning) {
-                // Pausar cronómetro
-                timeWhenPaused = tvChronoTime.base - SystemClock.elapsedRealtime()
-                tvChronoTime.stop()
-                isChronoRunning = false
-                ivChronoPlayIcon.setImageResource(android.R.drawable.ic_media_play)
+            val intent = Intent(this, PedometerService::class.java).apply {
+                action = "pa.ac.pa.miprimeraapp.ADD_STEPS"
+                putExtra("amount", 1000)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
             } else {
-                // Reanudar cronómetro
-                tvChronoTime.base = SystemClock.elapsedRealtime() + timeWhenPaused
-                tvChronoTime.start()
-                isChronoRunning = true
-                ivChronoPlayIcon.setImageResource(android.R.drawable.ic_media_pause)
+                startService(intent)
+            }
+            Toast.makeText(this, "+1000 Pasos manuales solicitados", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun checkAndRequestPermissions() {
+        val permissionsToRequest = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACTIVITY_RECOGNITION)
+                != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(android.Manifest.permission.ACTIVITY_RECOGNITION)
             }
         }
 
-        btnChronoStop.setOnClickListener {
-            detenerYGuardarCronometro()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsToRequest.toTypedArray(), REQUEST_PERMISSIONS_CODE)
+        } else {
+            iniciarServicioPodometro()
         }
     }
 
-    private fun mostrarCronometro(tipo: String) {
-        selectedChronoType = tipo
-        tvChronoTitle.text = "Registrando: $tipo"
-        layoutChronometer.visibility = View.VISIBLE
-        
-        tvChronoTime.base = SystemClock.elapsedRealtime()
-        timeWhenPaused = 0
-        tvChronoTime.start()
-        isChronoRunning = true
-        ivChronoPlayIcon.setImageResource(android.R.drawable.ic_media_pause)
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_PERMISSIONS_CODE) {
+            // Iniciamos el servicio independientemente de los permisos concedidos
+            iniciarServicioPodometro()
+        }
     }
 
-    /**
-     * Finaliza la sesión de cronómetro, calcula la quema de calorías según el tipo
-     * de ejercicio y su duración, y simula pasos si corresponde.
-     */
-    private fun detenerYGuardarCronometro() {
-        tvChronoTime.stop()
-        val elapsedMillis = SystemClock.elapsedRealtime() - tvChronoTime.base
-        val elapsedMinutes = (elapsedMillis / 1000 / 60).toInt().coerceAtLeast(1)
-
-        layoutChronometer.visibility = View.GONE
-        isChronoRunning = false
-
-        // Factores MET simplificados por tipo de ejercicio
-        val factorCalorias = when (selectedChronoType) {
-            "Correr" -> 8.5f
-            "Fuerza" -> 5.5f
-            "Yoga" -> 4f
-            "Ciclismo" -> 7f
-            else -> 5f
+    private fun iniciarServicioPodometro() {
+        val intent = Intent(this, PedometerService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
-
-        val caloriasQuemadas = elapsedMinutes * factorCalorias
-        caloriesToday += caloriasQuemadas
-        if (caloriesToday > 5000f) caloriesToday = 5000f
-
-        // Aporte de pasos estimado para ejercicios cardiovasculares
-        if (selectedChronoType == "Correr" || selectedChronoType == "Ciclismo") {
-            stepsToday += (elapsedMinutes * 120).toFloat()
-            if (stepsToday > 25000f) stepsToday = 25000f
-        }
-
-        evaluarRacha()
-        guardarProgresoDiario()
-        actualizarUI()
-
-        Toast.makeText(this, "Sesión de $selectedChronoType guardada: +${caloriasQuemadas.toInt()} kcal", Toast.LENGTH_LONG).show()
     }
 
     /**
@@ -284,7 +264,6 @@ class ActividadFisicaActivity : AppCompatActivity() {
             else -> 0
         }
         
-        // La meta es cumplir 10,000 pasos o quemar 600 kcal
         val cumpleMeta = (stepsToday >= 10000f || caloriesToday >= 600f)
         repository.savePhysicalHistoryDay(dayIndex, cumpleMeta)
     }

@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
+import android.view.View
+import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -55,6 +57,30 @@ class ControlGlucosaActivity : AppCompatActivity() {
         inicializarVistas()
         actualizarUI()
 
+        // Configurar exclusión mutua de RadioButtons anidados en LinearLayouts y clics de fila
+        val rbAyunas = findViewById<RadioButton>(R.id.rbAyunas)
+        val rbAntesAlmuerzo = findViewById<RadioButton>(R.id.rbAntesAlmuerzo)
+        val rbDespuesAlmuerzo = findViewById<RadioButton>(R.id.rbDespuesAlmuerzo)
+        val rbCena = findViewById<RadioButton>(R.id.rbCena)
+
+        val rbs = listOf(rbAyunas, rbAntesAlmuerzo, rbDespuesAlmuerzo, rbCena)
+        for (rb in rbs) {
+            rb.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (isChecked) {
+                    for (other in rbs) {
+                        if (other != buttonView) {
+                            other.isChecked = false
+                        }
+                    }
+                }
+            }
+        }
+
+        findViewById<View>(R.id.layoutAyunas).setOnClickListener { rbAyunas.isChecked = true }
+        findViewById<View>(R.id.layoutAntesAlmuerzo).setOnClickListener { rbAntesAlmuerzo.isChecked = true }
+        findViewById<View>(R.id.layoutDespuesAlmuerzo).setOnClickListener { rbDespuesAlmuerzo.isChecked = true }
+        findViewById<View>(R.id.layoutCena).setOnClickListener { rbCena.isChecked = true }
+
         // Fecha dinámica en el encabezado
         val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
         val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
@@ -85,14 +111,25 @@ class ControlGlucosaActivity : AppCompatActivity() {
         val glucosaTexto = etGlucoseValue.text.toString().trim()
         val notasOpcionales = etOptionalNotes.text.toString().trim()
 
-        val selectedRadioId = rgRecordType.checkedRadioButtonId
-        val tipoRegistro = obtenerTipoRegistroTexto(selectedRadioId)
+        val tipoRegistro = when {
+            findViewById<RadioButton>(R.id.rbAyunas).isChecked -> "Ayunas"
+            findViewById<RadioButton>(R.id.rbAntesAlmuerzo).isChecked -> "Antes de almuerzo"
+            findViewById<RadioButton>(R.id.rbDespuesAlmuerzo).isChecked -> "Después de almuerzo"
+            findViewById<RadioButton>(R.id.rbCena).isChecked -> "Cena"
+            else -> "No definido"
+        }
 
         if (!validarGlucosa(glucosaTexto)) {
             return
         }
 
-        val valorGlucosa = glucosaTexto.toDouble()
+        if (notasOpcionales.length > 100) {
+            etOptionalNotes.error = "Las notas no pueden exceder los 100 caracteres"
+            etOptionalNotes.requestFocus()
+            return
+        }
+
+        val valorGlucosa = glucosaTexto.toDoubleOrNull() ?: 0.0
         guardarRegistro(valorGlucosa, tipoRegistro, notasOpcionales)
     }
 
@@ -102,6 +139,12 @@ class ControlGlucosaActivity : AppCompatActivity() {
     private fun validarGlucosa(texto: String): Boolean {
         if (texto.isEmpty()) {
             etGlucoseValue.error = "El valor de glucosa es obligatorio"
+            etGlucoseValue.requestFocus()
+            return false
+        }
+
+        if (texto.length > 5) {
+            etGlucoseValue.error = "Longitud de valor de glucosa excedida"
             etGlucoseValue.requestFocus()
             return false
         }
@@ -122,15 +165,7 @@ class ControlGlucosaActivity : AppCompatActivity() {
         return true
     }
 
-    private fun obtenerTipoRegistroTexto(radioId: Int): String {
-        return when (radioId) {
-            R.id.rbAyunas -> "Ayunas"
-            R.id.rbAntesAlmuerzo -> "Antes de almuerzo"
-            R.id.rbDespuesAlmuerzo -> "Después de almuerzo"
-            R.id.rbCena -> "Cena"
-            else -> "No definido"
-        }
-    }
+
 
     /**
      * Guarda la lectura en la persistencia local modular a través del repositorio,

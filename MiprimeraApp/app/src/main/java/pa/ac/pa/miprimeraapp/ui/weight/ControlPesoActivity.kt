@@ -88,32 +88,52 @@ class ControlPesoActivity : AppCompatActivity() {
 
         // LÓGICA DE CÁLCULO Y GUARDADO
         btnCalcular.setOnClickListener {
-            val sEdad = etEdad.text.toString()
-            val sPeso = etPeso.text.toString()
-            val sEstatura = etEstatura.text.toString()
+            val sEdad = etEdad.text.toString().trim()
+            val sPeso = etPeso.text.toString().trim()
+            val sEstatura = etEstatura.text.toString().trim()
 
             if (sEdad.isEmpty() || sPeso.isEmpty() || sEstatura.isEmpty()) {
                 Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val edad = sEdad.toInt()
-            var peso = sPeso.toDouble()
-            var estatura = sEstatura.toDouble()
+            if (sEdad.length > 3) {
+                Toast.makeText(this, "Edad inválida por longitud excesiva", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (sPeso.length > 6) {
+                Toast.makeText(this, "Peso inválido por longitud excesiva", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (sEstatura.length > 5) {
+                Toast.makeText(this, "Estatura inválida por longitud excesiva", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val edad = sEdad.toIntOrNull()
+            var peso = sPeso.toDoubleOrNull()
+            var estatura = sEstatura.toDoubleOrNull()
+
+            if (edad == null || peso == null || estatura == null) {
+                Toast.makeText(this, "Ingresa un formato numérico válido", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             // Validaciones básicas de rangos lógicos de salud
             if (edad <= 0 || edad > 120) {
-                Toast.makeText(this, "Edad inválida", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Edad inválida (1 a 120 años)", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (peso <= 0 || peso >= 500) {
-                Toast.makeText(this, "Peso inválido", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Peso inválido (1 a 500)", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (estatura <= 0 || estatura >= 300) {
-                Toast.makeText(this, "Estatura inválida", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Estatura inválida (1 a 300)", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 

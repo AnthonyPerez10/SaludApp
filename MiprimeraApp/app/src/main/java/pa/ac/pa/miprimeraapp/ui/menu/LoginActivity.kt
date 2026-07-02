@@ -58,10 +58,9 @@ class LoginActivity : AppCompatActivity() {
             tvWelcomeTitle.text = "¡Hola, $nombre!"
             tvWelcomeSubtitle.text = "Ingresa tu contraseña para continuar"
             
-            // Opcional: Si el usuario ya está registrado, podemos ocultar o deshabilitar el input de Email
-            // o rellenarlo por conveniencia, pero para cumplir con la presencia del input etEmail lo mantenemos activo.
-            etEmail.setText("correo@registrado.com") // Relleno por defecto para agilizar
-            etEmail.isEnabled = false // Mantener fijo o deshabilitado si ya está registrado
+            // Pre-rellenar con el correo registrado y mantenerlo habilitado/editable
+            etEmail.setText(prefsManager.getCorreo())
+            etEmail.isEnabled = true
         } else {
             tvWelcomeTitle.text = "¡Te damos la bienvenida!"
             tvWelcomeSubtitle.text = "Por favor, regístrate para crear tu cuenta"
@@ -78,6 +77,27 @@ class LoginActivity : AppCompatActivity() {
             ejecutarLogin()
         }
 
+        // Configurar toggle para ver la contraseña escrita
+        etPassword.setOnTouchListener { v, event ->
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                val drawableEnd = etPassword.compoundDrawables[2]
+                if (drawableEnd != null && event.rawX >= (etPassword.right - drawableEnd.bounds.width() - etPassword.paddingEnd)) {
+                    val isVisible = etPassword.transformationMethod == null
+                    if (isVisible) {
+                        etPassword.transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
+                        etPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_view, 0)
+                    } else {
+                        etPassword.transformationMethod = null
+                        etPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_close_clear_cancel, 0)
+                    }
+                    etPassword.setSelection(etPassword.text.length)
+                    v.performClick()
+                    return@setOnTouchListener true
+                }
+            }
+            false
+        }
+
         tvGoToRegister.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
@@ -86,10 +106,29 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun ejecutarLogin() {
+        val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString().trim()
+
+        if (email.isEmpty()) {
+            etEmail.error = "El correo electrónico es obligatorio"
+            etEmail.requestFocus()
+            return
+        }
+
+        if (email.length > 100) {
+            etEmail.error = "El correo no puede exceder los 100 caracteres"
+            etEmail.requestFocus()
+            return
+        }
 
         if (password.isEmpty()) {
             etPassword.error = "La contraseña es obligatoria"
+            etPassword.requestFocus()
+            return
+        }
+
+        if (password.length > 32) {
+            etPassword.error = "La contraseña no puede exceder los 32 caracteres"
             etPassword.requestFocus()
             return
         }

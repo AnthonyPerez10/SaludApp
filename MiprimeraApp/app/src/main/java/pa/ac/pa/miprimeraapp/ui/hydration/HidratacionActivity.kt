@@ -196,6 +196,12 @@ class HidratacionActivity : AppCompatActivity() {
             return
         }
 
+        if (pesoStr.length > 5) {
+            etUserWeight.error = "El peso no puede exceder los 5 caracteres"
+            etUserWeight.requestFocus()
+            return
+        }
+
         val peso = pesoStr.toFloatOrNull()
         if (peso == null || peso < 30f || peso > 250f) {
             etUserWeight.error = "Ingresa un peso válido (30 a 250 kg)"

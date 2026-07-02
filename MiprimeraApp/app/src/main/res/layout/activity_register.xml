@@ -160,6 +160,7 @@
                     android:layout_height="48dp"
                     android:hint="Mínimo 4 caracteres"
                     android:inputType="textPassword"
+                    android:drawableEnd="@android:drawable/ic_menu_view"
                     android:textSize="14sp"
                     android:layout_marginBottom="20dp" />
 
