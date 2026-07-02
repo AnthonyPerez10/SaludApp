@@ -62,6 +62,27 @@ class RegisterActivity : AppCompatActivity() {
             ejecutarRegistro()
         }
 
+        // Configurar toggle para ver la contraseña escrita
+        etPassword.setOnTouchListener { v, event ->
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                val drawableEnd = etPassword.compoundDrawables[2]
+                if (drawableEnd != null && event.rawX >= (etPassword.right - drawableEnd.bounds.width() - etPassword.paddingEnd)) {
+                    val isVisible = etPassword.transformationMethod == null
+                    if (isVisible) {
+                        etPassword.transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
+                        etPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_view, 0)
+                    } else {
+                        etPassword.transformationMethod = null
+                        etPassword.setCompoundDrawablesWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_close_clear_cancel, 0)
+                    }
+                    etPassword.setSelection(etPassword.text.length)
+                    v.performClick()
+                    return@setOnTouchListener true
+                }
+            }
+            false
+        }
+
         tvGoToLogin.setOnClickListener {
             // Ir a Login
             val intent = Intent(this, LoginActivity::class.java)
@@ -85,14 +106,32 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
+        if (nombre.length > 50) {
+            etNombre.error = "El nombre no puede exceder los 50 caracteres"
+            etNombre.requestFocus()
+            return
+        }
+
         if (apellido.isEmpty()) {
             etApellido.error = "El apellido es obligatorio"
             etApellido.requestFocus()
             return
         }
 
+        if (apellido.length > 50) {
+            etApellido.error = "El apellido no puede exceder los 50 caracteres"
+            etApellido.requestFocus()
+            return
+        }
+
         if (edadStr.isEmpty()) {
             etEdad.error = "La edad es obligatoria"
+            etEdad.requestFocus()
+            return
+        }
+
+        if (edadStr.length > 3) {
+            etEdad.error = "La edad ingresada no es válida"
             etEdad.requestFocus()
             return
         }
@@ -110,6 +149,12 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
+        if (email.length > 100) {
+            etEmail.error = "El correo electrónico no puede exceder los 100 caracteres"
+            etEmail.requestFocus()
+            return
+        }
+
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.error = "Ingresa un correo electrónico válido"
             etEmail.requestFocus()
@@ -118,6 +163,12 @@ class RegisterActivity : AppCompatActivity() {
 
         if (password.isEmpty()) {
             etPassword.error = "La contraseña es obligatoria"
+            etPassword.requestFocus()
+            return
+        }
+
+        if (password.length > 32) {
+            etPassword.error = "La contraseña no puede exceder los 32 caracteres"
             etPassword.requestFocus()
             return
         }
@@ -134,7 +185,7 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         // Registrar usuario
-        prefsManager.registerUser(nombre, apellido, edad, password, true)
+        prefsManager.registerUser(nombre, apellido, edad, email, password, true)
         
         Toast.makeText(this, "¡Registro completado con éxito!", Toast.LENGTH_LONG).show()
 

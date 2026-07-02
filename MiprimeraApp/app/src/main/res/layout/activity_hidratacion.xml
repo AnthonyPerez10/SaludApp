@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/ui_weight_background"
+    android:fitsSystemWindows="true"
     tools:context=".Hidratacion_Activity">
 
     <ScrollView
@@ -71,19 +72,6 @@
                             android:textStyle="bold"/>
                     </LinearLayout>
 
-                    <ImageView
-                        android:id="@+id/btnBack"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@android:drawable/ic_menu_revert"
-                        android:rotation="180"
-                        app:tint="@color/ui_weight_title_blue"
-                        android:contentDescription="Regresar" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
@@ -540,6 +528,72 @@
                                 android:textSize="10sp"
                                 android:textColor="@color/peso_gray_text"
                                 android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Divisor -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="12dp"
+                        android:background="@color/ui_divider_e0"/>
+
+                    <!-- Panel de KPIs Semanal -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Días Cumplidos"
+                                android:textColor="@color/peso_gray_text"
+                                android:textSize="11sp"/>
+
+                            <TextView
+                                android:id="@+id/tvWaterStreakKPI"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 / 7"
+                                android:textColor="@color/peso_primary_blue"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Consumo Hoy"
+                                android:textColor="@color/peso_gray_text"
+                                android:textSize="11sp"/>
+
+                            <TextView
+                                android:id="@+id/tvWaterTodayKPI"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 ml"
+                                android:textColor="@color/peso_save_green"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:layout_marginTop="2dp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>

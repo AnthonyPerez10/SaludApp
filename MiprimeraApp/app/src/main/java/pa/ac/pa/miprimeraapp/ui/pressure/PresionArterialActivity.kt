@@ -5,26 +5,27 @@ import android.app.TimePickerDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.NumberPicker
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import pa.ac.pa.miprimeraapp.R
-import android.widget.ImageView
+import pa.ac.pa.miprimeraapp.data.RegistroPresion
+import pa.ac.pa.miprimeraapp.data.SaludAppRepository
+import pa.ac.pa.miprimeraapp.data.SaludAppRepositoryImpl
 import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.Date
-import java.util.Calendar
+import java.util.*
 
+/**
+ * Actividad para registrar, analizar y persistir mediciones de presión arterial y pulso.
+ * Utiliza SaludAppRepository para centralizar el almacenamiento.
+ */
 class PresionArterialActivity : AppCompatActivity() {
 
-    // Variables del XML Presión Arterial Locales
+    // Repositorio modular de datos
+    private lateinit var repository: SaludAppRepository
+
+    // Variables del XML
     private lateinit var btnFecha: Button
     private lateinit var btnHora: LinearLayout
     private lateinit var txtHora: TextView
@@ -34,6 +35,7 @@ class PresionArterialActivity : AppCompatActivity() {
     private lateinit var rgBrazo: RadioGroup
     private lateinit var btnAnalizar: Button
 
+    // Componentes del resumen de la última medición
     private lateinit var cardResumen: CardView
     private lateinit var txtResFecha: TextView
     private lateinit var txtResHora: TextView
@@ -43,6 +45,11 @@ class PresionArterialActivity : AppCompatActivity() {
     private lateinit var txtResBrazo: TextView
     private lateinit var txtResClasificacion: TextView
 
+    // KPIs del panel de estadísticas
+    private lateinit var tvStatSysAvg: TextView
+    private lateinit var tvStatDiaAvg: TextView
+    private lateinit var tvStatPulseAvg: TextView
+
     private var fechaSeleccionada: String? = null
     private var horaSeleccionada: String? = null
 
@@ -51,15 +58,24 @@ class PresionArterialActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_presion_arterial)
 
-        // Botón de regreso
-        val btnBack = findViewById<ImageView>(R.id.btnBack)
-        btnBack.setOnClickListener { finish() }
+        repository = SaludAppRepositoryImpl(this)
 
         // Fecha dinámica en el encabezado
         val tvDateTimeInfo = findViewById<TextView>(R.id.tvDateTimeInfo)
         val hoyStr = SimpleDateFormat("EEEE, d MMMM", Locale.forLanguageTag("es-ES")).format(Date())
         tvDateTimeInfo.text = "REGISTRO: Hoy - ${hoyStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }}"
 
+        inicializarVistas()
+        configurarNumberPickers()
+        actualizarUI()
+
+        // Eventos
+        btnFecha.setOnClickListener { mostrarDatePicker() }
+        btnHora.setOnClickListener { mostrarTimePicker() }
+        btnAnalizar.setOnClickListener { registrarMedicion() }
+    }
+
+    private fun inicializarVistas() {
         btnFecha = findViewById(R.id.btnFecha)
         btnHora = findViewById(R.id.btnHora)
         txtHora = findViewById(R.id.txtHora)
@@ -79,122 +95,161 @@ class PresionArterialActivity : AppCompatActivity() {
         txtResBrazo = findViewById(R.id.txtResBrazo)
         txtResClasificacion = findViewById(R.id.txtResClasificacion)
 
+        // KPIs de estadísticas
+        tvStatSysAvg = findViewById(R.id.tvStatSysAvg)
+        tvStatDiaAvg = findViewById(R.id.tvStatDiaAvg)
+        tvStatPulseAvg = findViewById(R.id.tvStatPulseAvg)
+    }
+
+    private fun configurarNumberPickers() {
         npSistolica.minValue = 80
         npSistolica.maxValue = 200
+        npSistolica.value = 120 // Valor inicial promedio normal
+
         npDiastolica.minValue = 40
         npDiastolica.maxValue = 130
+        npDiastolica.value = 80  // Valor inicial promedio normal
+
         npPulso.minValue = 40
         npPulso.maxValue = 180
-
-        // Evento de iteracion del usuario
-        btnFecha.setOnClickListener {
-            mostrarDatePicker()
-        }
-
-        btnHora.setOnClickListener {
-            mostrarTimePicker()
-        }
-
-        btnAnalizar.setOnClickListener {
-            mostrarMedicion()
-        }
+        npPulso.value = 70  // Valor inicial promedio normal
     }
 
-    /* Metodo para mostar DatePicker que tiene como funcionalidad mostrar
-    en el cuadro de dialgo para seleccionar una fecha y almacenarla*/
-
+    /**
+     * Muestra un DatePickerDialog para seleccionar la fecha de la toma.
+     */
     private fun mostrarDatePicker() {
         val calendario = Calendar.getInstance()
-        val datePicker = DatePickerDialog(
-            this,
-            { _, year, month, dayOfMonth ->
-                fechaSeleccionada = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
-                btnFecha.text = "Seleccionar Fecha:\n$fechaSeleccionada"
-            },
-            calendario.get(Calendar.YEAR),
-            calendario.get(Calendar.MONTH),
-            calendario.get(Calendar.DAY_OF_MONTH)
-        )
-        datePicker.show()
+        val anio = calendario.get(Calendar.YEAR)
+        val mes = calendario.get(Calendar.MONTH)
+        val dia = calendario.get(Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = DatePickerDialog(this, { _, year, monthOfYear, dayOfMonth ->
+            fechaSeleccionada = String.format(Locale.getDefault(), "%02d/%02d/%d", dayOfMonth, monthOfYear + 1, year)
+            btnFecha.text = fechaSeleccionada
+        }, anio, mes, dia)
+
+        datePickerDialog.show()
     }
 
-    /*Este metodo tiene como propósito clasificar el nivel de presión arterial a partir de los
-     valores de presión sistólica y diastólica ingresados por el usuario. */
-
+    /**
+     * Muestra un TimePickerDialog para seleccionar la hora de la toma.
+     */
     private fun mostrarTimePicker() {
         val calendario = Calendar.getInstance()
-        val timePicker = TimePickerDialog(
-            this,
-            android.R.style.Theme_Holo_Light_Dialog,
-            { _, hourOfDay, minute ->
-                val formato = if (hourOfDay >= 12) "PM" else "AM"
-                val hora12 = if (hourOfDay % 12 == 0) 12 else hourOfDay % 12
+        val hora = calendario.get(Calendar.HOUR_OF_DAY)
+        val minuto = calendario.get(Calendar.MINUTE)
 
-                horaSeleccionada = String.format("%02d:%02d %s", hora12, minute, formato)
-                txtHora.text = horaSeleccionada
-            },
-            calendario.get(Calendar.HOUR_OF_DAY),
-            calendario.get(Calendar.MINUTE),
-            false
-        )
-        timePicker.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        timePicker.show()
+        val timePickerDialog = TimePickerDialog(this, { _, hourOfDay, minute ->
+            val amPm = if (hourOfDay >= 12) "PM" else "AM"
+            val hora12 = if (hourOfDay % 12 == 0) 12 else hourOfDay % 12
+            horaSeleccionada = String.format(Locale.getDefault(), "%02d:%02d %s", hora12, minute, amPm)
+            txtHora.text = horaSeleccionada
+        }, hora, minuto, false)
+
+        timePickerDialog.show()
     }
 
-    // 1. Validaciones previas
-    private fun mostrarMedicion() {
+    /**
+     * Valida y procesa la nueva medición, calculando la clasificación de salud
+     * y guardándola mediante el repositorio.
+     */
+    private fun registrarMedicion() {
         if (fechaSeleccionada == null) {
-            Toast.makeText(this, "Debe seleccionar una fecha", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Por favor, seleccione una fecha", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (horaSeleccionada == null) {
-            Toast.makeText(this, "Debe seleccionar una hora", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Por favor, seleccione una hora", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (rgBrazo.checkedRadioButtonId == -1) {
-            Toast.makeText(this, "Debe seleccionar el brazo de medición", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // 2. Obtención de valores (Usando .value de los NumberPicker)
-        val sistolica = npSistolica.value
-        val diastolica = npDiastolica.value
+        val sis = npSistolica.value
+        val dia = npDiastolica.value
         val pulso = npPulso.value
 
-        val seleccionadoId = rgBrazo.checkedRadioButtonId
-        val brazo = findViewById<RadioButton>(seleccionadoId).text
+        val selectedRadioId = rgBrazo.checkedRadioButtonId
+        val brazo = if (selectedRadioId == R.id.rbDerecho) "Derecho" else "Izquierdo"
+        val clasificacion = clasificarPresion(sis, dia)
 
-        val clasificacion = clasificarPresion(sistolica, diastolica)
+        val nuevoRegistro = RegistroPresion(
+            fecha = fechaSeleccionada!!,
+            hora = horaSeleccionada!!,
+            sistolica = sis,
+            diastolica = dia,
+            pulso = pulso,
+            brazo = brazo,
+            clasificacion = clasificacion
+        )
 
-        txtResFecha.text = fechaSeleccionada
-        txtResHora.text = horaSeleccionada
-        txtResSistolica.text = "$sistolica mmHg"
-        txtResDiastolica.text = "$diastolica mmHg"
-        txtResPulso.text = "$pulso BPM"
-        txtResBrazo.text = brazo
+        // Guardar en repositorio
+        repository.addPressureRecord(nuevoRegistro)
 
-        txtResClasificacion.text = clasificacion.uppercase()
-        when (clasificacion) {
-            "Presión normal" -> txtResClasificacion.setBackgroundColor(Color.parseColor("#4CAF50"))
-            "Presión baja" -> txtResClasificacion.setBackgroundColor(Color.parseColor("#2196F3"))
-            "Presión elevada" -> txtResClasificacion.setBackgroundColor(Color.parseColor("#FF9800"))
-            else -> txtResClasificacion.setBackgroundColor(Color.parseColor("#F44336"))
-        }
+        Toast.makeText(this, "Medición guardada con éxito", Toast.LENGTH_SHORT).show()
 
-        cardResumen.visibility = View.VISIBLE
+        // Resetear botones del formulario
+        fechaSeleccionada = null
+        horaSeleccionada = null
+        btnFecha.text = "Seleccionar Fecha"
+        txtHora.text = "Seleccionar Hora"
+
+        actualizarUI()
     }
 
-    /*Este metodo tiene como propósito clasificar el nivel de presión arterial a partir de los
-     valores de presión sistólica y diastólica ingresados por el usuario. */
-
+    /**
+     * Clasifica la presión arterial basándose en los parámetros de la American Heart Association.
+     */
     private fun clasificarPresion(sistolica: Int, diastolica: Int): String {
         return when {
-            sistolica < 90 || diastolica < 60 -> "Presión baja"
-            sistolica in 90..119 && diastolica in 60..79 -> "Presión normal"
-            sistolica in 120..129 && diastolica < 80 -> "Presión elevada"
-            else -> "Hipertensión"
+            sistolica < 120 && diastolica < 80 -> "Normal"
+            sistolica in 120..129 && diastolica < 80 -> "Elevada"
+            sistolica in 130..139 || diastolica in 80..89 -> "Presión alta (Estadio 1)"
+            sistolica >= 140 || diastolica >= 90 -> "Presión alta (Estadio 2)"
+            else -> "Crisis de Hipertensión (Consulte a su médico)"
+        }
+    }
+
+    /**
+     * Carga el historial desde el repositorio y actualiza las estadísticas y el último resumen.
+     */
+    private fun actualizarUI() {
+        val history = repository.getPressureRecords()
+
+        if (history.isNotEmpty()) {
+            val ultimo = history.first()
+
+            // Actualizar tarjeta de última lectura
+            cardResumen.visibility = View.VISIBLE
+            txtResFecha.text = ultimo.fecha
+            txtResHora.text = ultimo.hora
+            txtResSistolica.text = ultimo.sistolica.toString()
+            txtResDiastolica.text = ultimo.diastolica.toString()
+            txtResPulso.text = "${ultimo.pulso} lpm"
+            txtResBrazo.text = ultimo.brazo
+            txtResClasificacion.text = ultimo.clasificacion
+
+            // Cambiar color de clasificación según riesgo
+            when (ultimo.clasificacion) {
+                "Normal" -> txtResClasificacion.setTextColor(Color.parseColor("#2E7D32")) // Verde
+                "Elevada" -> txtResClasificacion.setTextColor(Color.parseColor("#F57C00")) // Naranja
+                else -> txtResClasificacion.setTextColor(Color.parseColor("#D32F2F")) // Rojo
+            }
+
+            // Calcular KPIs promedio de todo el historial
+            val count = history.size
+            val avgSys = history.sumOf { it.sistolica } / count
+            val avgDia = history.sumOf { it.diastolica } / count
+            val avgPulse = history.sumOf { it.pulso } / count
+
+            tvStatSysAvg.text = "$avgSys mmHg"
+            tvStatDiaAvg.text = "$avgDia mmHg"
+            tvStatPulseAvg.text = "$avgPulse lpm"
+        } else {
+            cardResumen.visibility = View.GONE
+            tvStatSysAvg.text = "--"
+            tvStatDiaAvg.text = "--"
+            tvStatPulseAvg.text = "--"
         }
     }
 }
