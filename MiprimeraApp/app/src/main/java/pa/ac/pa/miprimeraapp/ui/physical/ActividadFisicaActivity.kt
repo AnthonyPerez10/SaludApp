@@ -39,6 +39,7 @@ class ActividadFisicaActivity : AppCompatActivity() {
     private lateinit var tvStreakValue: TextView
     private lateinit var tvStepsLogged: TextView
     private lateinit var btnAddSteps: Button
+    private lateinit var switchNotifications: androidx.appcompat.widget.SwitchCompat
 
     // KPIs del panel de estadísticas
     private lateinit var tvPhysStreakKPI: TextView
@@ -136,6 +137,7 @@ class ActividadFisicaActivity : AppCompatActivity() {
         barV = findViewById(R.id.barV)
         barS = findViewById(R.id.barS)
         barD = findViewById(R.id.barD)
+        switchNotifications = findViewById(R.id.switchNotifications)
     }
 
     private fun setupListeners() {
@@ -151,6 +153,12 @@ class ActividadFisicaActivity : AppCompatActivity() {
                 startService(intent)
             }
             Toast.makeText(this, "+1000 Pasos manuales solicitados", Toast.LENGTH_SHORT).show()
+        }
+
+        val sharedPrefs = getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
+        switchNotifications.isChecked = sharedPrefs.getBoolean("pref_notifications_activity", true)
+        switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+            sharedPrefs.edit().putBoolean("pref_notifications_activity", isChecked).apply()
         }
     }
 

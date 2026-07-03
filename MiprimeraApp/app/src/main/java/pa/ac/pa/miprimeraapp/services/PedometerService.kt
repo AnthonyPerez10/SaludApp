@@ -52,11 +52,12 @@ class PedometerService : Service(), SensorEventListener {
     private val MAX_STEP_DELAY_MS = 1500L // Ritmo mínimo: 1 paso cada 1.5 segundos (caminar lento)
     private val PAUSE_RESET_MS = 2000L // Tiempo máximo para considerar que se detuvo
 
-    // Handler para tareas periódicas en segundo plano (Medicamentos)
+    // Handler para tareas periódicas en segundo plano (Medicamentos e Hidratación)
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private val medicationCheckRunnable = object : Runnable {
         override fun run() {
             verificarMedicamentosOmitidos()
+            verificarNotificacionesHidratacion()
             // Re-ejecutar cada 5 minutos
             handler.postDelayed(this, 300000)
         }
@@ -103,6 +104,12 @@ class PedometerService : Service(), SensorEventListener {
             stepsToday = 0f
             repository.savePhysicalCurrentDay(hoyStr)
             repository.saveStreakNotificationSentToday(false)
+
+            // Reiniciar tracker de notificaciones de hidratación del día
+            getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("hid_notif_enviada_hoy", false)
+                .apply()
         } else {
             stepsToday = repository.getPhysicalStepsToday()
             stepsYesterday = repository.getPhysicalStepsYesterday()
@@ -242,6 +249,10 @@ class PedometerService : Service(), SensorEventListener {
      * y despacha una notificación emergente única.
      */
     private fun evaluarNotificacionRacha() {
+        val sharedPrefs = getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
+        val notifEnabled = sharedPrefs.getBoolean("pref_notifications_activity", true)
+        if (!notifEnabled) return
+
         if (stepsYesterday > 0 && stepsToday > stepsYesterday) {
             if (!repository.getStreakNotificationSentToday()) {
                 repository.saveStreakNotificationSentToday(true)
@@ -442,5 +453,61 @@ class PedometerService : Service(), SensorEventListener {
             .build()
 
         manager.notify(System.currentTimeMillis().toInt(), notification)
+    }
+
+    private fun verificarNotificacionesHidratacion() {
+        val sharedPrefs = getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
+        val notifEnabled = sharedPrefs.getBoolean("pref_notifications_hydration", true)
+        if (!notifEnabled) return
+
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        
+        // Recordatorio entre las 9 AM y las 8 PM
+        if (hour in 9..20) {
+            val sentToday = sharedPrefs.getBoolean("hid_notif_enviada_hoy", false)
+            if (!sentToday) {
+                val waterToday = repository.getWaterToday()
+                val waterGoal = repository.getWaterGoal()
+                if (waterToday < waterGoal) {
+                    enviarNotificacionHidratacion()
+                    sharedPrefs.edit().putBoolean("hid_notif_enviada_hoy", true).apply()
+                }
+            }
+        }
+    }
+
+    private fun enviarNotificacionHidratacion() {
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "HydrationAlertChannel"
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                "Alertas de Hidratación",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            manager.createNotificationChannel(channel)
+        }
+
+        val intent = Intent(this, pa.ac.pa.miprimeraapp.ui.hydration.HidratacionActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            2002,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("🥤 ¡Hora de beber agua!")
+            .setContentText("No olvides registrar tu consumo de agua de hoy para alcanzar tu meta diaria.")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(Notification.DEFAULT_ALL)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        manager.notify(2001, notification)
     }
 }

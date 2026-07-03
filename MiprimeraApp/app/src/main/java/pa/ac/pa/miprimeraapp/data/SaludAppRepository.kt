@@ -67,6 +67,7 @@ interface SaludAppRepository {
     // --- Medicamentos ---
     fun getMedications(): List<Medication>
     fun saveMedications(meds: List<Medication>)
+    fun deleteMedication(id: String)
     fun getMedicationCurrentDay(): String
     fun saveMedicationCurrentDay(day: String)
     fun getTakenSlotsToday(): Set<String>

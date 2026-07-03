@@ -29,6 +29,7 @@ class HidratacionActivity : AppCompatActivity() {
     private lateinit var waterWaveView: WaterWaveView
     private lateinit var tvProgressPercentage: TextView
     private lateinit var tvSmartTip: TextView
+    private lateinit var switchNotifications: androidx.appcompat.widget.SwitchCompat
     
     // KPIs del panel de estadísticas
     private lateinit var tvWaterStreakKPI: TextView
@@ -128,6 +129,7 @@ class HidratacionActivity : AppCompatActivity() {
         rbFemale = findViewById(R.id.rbFemale)
         spinnerUserActivity = findViewById(R.id.spinnerUserActivity)
         btnCalculateGoal = findViewById(R.id.btnCalculateGoal)
+        switchNotifications = findViewById(R.id.switchNotifications)
     }
 
     private fun setupSpinner() {
@@ -169,6 +171,12 @@ class HidratacionActivity : AppCompatActivity() {
         // Calcular meta ideal
         btnCalculateGoal.setOnClickListener {
             calcularMetaPersonalizada()
+        }
+
+        val sharedPrefs = getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
+        switchNotifications.isChecked = sharedPrefs.getBoolean("pref_notifications_hydration", true)
+        switchNotifications.setOnCheckedChangeListener { _, isChecked ->
+            sharedPrefs.edit().putBoolean("pref_notifications_hydration", isChecked).apply()
         }
     }
 

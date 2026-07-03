@@ -481,6 +481,15 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         }
     }
 
+    override fun deleteMedication(id: String) {
+        try {
+            val db = getDb()
+            db.delete("medications", "id = ?", arrayOf(id))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun getMedicationCurrentDay(): String = sharedPreferences.getString(KEY_MED_CURRENT_DAY, "") ?: ""
 
     override fun saveMedicationCurrentDay(day: String) {

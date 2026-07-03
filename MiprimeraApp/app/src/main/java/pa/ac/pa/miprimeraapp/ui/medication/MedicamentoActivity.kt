@@ -37,6 +37,7 @@ class MedicamentoActivity : AppCompatActivity() {
 
     // Botón para abrir el modal
     private lateinit var btnOpenAddMedModal: Button
+    private lateinit var btnHistorial: Button
 
     // KPIs del panel de estadísticas
     private lateinit var tvMedRegisteredKPI: TextView
@@ -109,6 +110,7 @@ class MedicamentoActivity : AppCompatActivity() {
 
     private fun inicializarVistas() {
         btnOpenAddMedModal = findViewById(R.id.btnOpenAddMedModal)
+        btnHistorial = findViewById(R.id.btnHistorial)
 
         // KPIs de estadísticas
         tvMedRegisteredKPI = findViewById(R.id.tvMedRegisteredKPI)
@@ -141,6 +143,17 @@ class MedicamentoActivity : AppCompatActivity() {
         btnOpenAddMedModal.setOnClickListener {
             mostrarDialogoAgregarMedicamento()
         }
+
+        btnHistorial.setOnClickListener {
+            val intent = android.content.Intent(this, HistorialMedicinaActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cargarDatos()
+        actualizarUI()
     }
 
     /**
