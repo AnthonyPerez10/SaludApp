@@ -283,6 +283,7 @@ class LoginActivity : AppCompatActivity() {
             subtitle = "Autentícate con tu huella digital",
             description = "Coloca tu dedo en el sensor para ingresar",
             onSuccess = {
+                prefsManager.setLoggedIn(true)
                 Toast.makeText(this, "¡Autenticación exitosa!", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, MenuActivity::class.java)
                 startActivity(intent)

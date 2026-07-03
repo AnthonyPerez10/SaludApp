@@ -35,6 +35,14 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
 
+    private lateinit var cardPeso: CardView
+    private lateinit var cardArterial: CardView
+    private lateinit var cardGlucosa: CardView
+    private lateinit var cardFisico: CardView
+    private lateinit var cardHidratacion: CardView
+    private lateinit var cardMedicamentos: CardView
+    private lateinit var gridLayout: androidx.gridlayout.widget.GridLayout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -67,13 +75,15 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Rellenar dinámicamente los datos de perfil en la cabecera del panel lateral
         configurarHeaderDrawer()
 
+        gridLayout = findViewById(R.id.MenuNavegacion)
+
         // Obtener referencias de tarjetas de navegación principal
-        val cardPeso = findViewById<CardView>(R.id.CardV_Peso)
-        val cardArterial = findViewById<CardView>(R.id.CarV_Presion_Arterial)
-        val cardGlucosa = findViewById<CardView>(R.id.CardV_Glucosa)
-        val cardFisico = findViewById<CardView>(R.id.CardV_Control_Fisico)
-        val cardHidratacion = findViewById<CardView>(R.id.CardV_Hidratacion)
-        val cardMedicamentos = findViewById<CardView>(R.id.CardV_medicamentos)
+        cardPeso = findViewById<CardView>(R.id.CardV_Peso)
+        cardArterial = findViewById<CardView>(R.id.CarV_Presion_Arterial)
+        cardGlucosa = findViewById<CardView>(R.id.CardV_Glucosa)
+        cardFisico = findViewById<CardView>(R.id.CardV_Control_Fisico)
+        cardHidratacion = findViewById<CardView>(R.id.CardV_Hidratacion)
+        cardMedicamentos = findViewById<CardView>(R.id.CardV_medicamentos)
 
         // Asignar listeners de navegación
         cardPeso.setOnClickListener {
@@ -142,23 +152,68 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun actualizarVisibilidadModulos() {
-        findViewById<CardView>(R.id.CardV_Peso).visibility = 
-            if (prefsManager.isModuleEnabled("peso")) View.VISIBLE else View.GONE
-            
-        findViewById<CardView>(R.id.CarV_Presion_Arterial).visibility = 
-            if (prefsManager.isModuleEnabled("presion")) View.VISIBLE else View.GONE
-            
-        findViewById<CardView>(R.id.CardV_Glucosa).visibility = 
-            if (prefsManager.isModuleEnabled("glucosa")) View.VISIBLE else View.GONE
-            
-        findViewById<CardView>(R.id.CardV_Control_Fisico).visibility = 
-            if (prefsManager.isModuleEnabled("actividad")) View.VISIBLE else View.GONE
-            
-        findViewById<CardView>(R.id.CardV_Hidratacion).visibility = 
-            if (prefsManager.isModuleEnabled("hidratacion")) View.VISIBLE else View.GONE
-            
-        findViewById<CardView>(R.id.CardV_medicamentos).visibility = 
-            if (prefsManager.isModuleEnabled("medicina")) View.VISIBLE else View.GONE
+        gridLayout.removeAllViews()
+
+        val activeCards = mutableListOf<CardView>()
+
+        if (prefsManager.isModuleEnabled("peso")) {
+            activeCards.add(cardPeso)
+            cardPeso.visibility = View.VISIBLE
+        } else {
+            cardPeso.visibility = View.GONE
+        }
+
+        if (prefsManager.isModuleEnabled("presion")) {
+            activeCards.add(cardArterial)
+            cardArterial.visibility = View.VISIBLE
+        } else {
+            cardArterial.visibility = View.GONE
+        }
+
+        if (prefsManager.isModuleEnabled("glucosa")) {
+            activeCards.add(cardGlucosa)
+            cardGlucosa.visibility = View.VISIBLE
+        } else {
+            cardGlucosa.visibility = View.GONE
+        }
+
+        if (prefsManager.isModuleEnabled("actividad")) {
+            activeCards.add(cardFisico)
+            cardFisico.visibility = View.VISIBLE
+        } else {
+            cardFisico.visibility = View.GONE
+        }
+
+        if (prefsManager.isModuleEnabled("hidratacion")) {
+            activeCards.add(cardHidratacion)
+            cardHidratacion.visibility = View.VISIBLE
+        } else {
+            cardHidratacion.visibility = View.GONE
+        }
+
+        if (prefsManager.isModuleEnabled("medicina")) {
+            activeCards.add(cardMedicamentos)
+            cardMedicamentos.visibility = View.VISIBLE
+        } else {
+            cardMedicamentos.visibility = View.GONE
+        }
+
+        val visibleCount = activeCards.size
+        gridLayout.columnCount = if (visibleCount <= 1) 1 else 2
+        gridLayout.rowCount = if (visibleCount <= 2) 1 else if (visibleCount <= 4) 2 else 3
+
+        for (card in activeCards) {
+            val params = androidx.gridlayout.widget.GridLayout.LayoutParams().apply {
+                width = 0
+                height = 0
+                columnSpec = androidx.gridlayout.widget.GridLayout.spec(androidx.gridlayout.widget.GridLayout.UNDEFINED, 1f)
+                rowSpec = androidx.gridlayout.widget.GridLayout.spec(androidx.gridlayout.widget.GridLayout.UNDEFINED, 1f)
+                val margin = (8 * resources.displayMetrics.density).toInt()
+                setMargins(margin, margin, margin, margin)
+            }
+            card.layoutParams = params
+            gridLayout.addView(card)
+        }
     }
 
     /**
