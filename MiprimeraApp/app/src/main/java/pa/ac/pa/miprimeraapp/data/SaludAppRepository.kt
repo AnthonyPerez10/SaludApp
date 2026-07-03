@@ -11,6 +11,7 @@ interface SaludAppRepository {
     fun registerUser(nombre: String, apellido: String, edad: Int, correo: String, contrasena: String, shareData: Boolean)
     fun loginUser(contrasena: String): Boolean
     fun isLoggedIn(): Boolean
+    fun setLoggedIn(loggedIn: Boolean)
     fun isRegistered(): Boolean
     fun getNombre(): String
     fun getApellido(): String

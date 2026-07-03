@@ -3,30 +3,70 @@ package pa.ac.pa.miprimeraapp.data
 import android.content.ContentValues
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import org.json.JSONArray
 import org.json.JSONObject
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 
 /**
  * Implementación de SaludAppRepository basada en SQLite encriptado (SQLCipher) para históricos
- * y SharedPreferences para configuraciones y consultas rápidas de estado.
+ * y EncryptedSharedPreferences para configuraciones y consultas rápidas de estado.
  */
 class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository {
 
-    private val sharedPreferences: SharedPreferences = context.getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    // Almacenamiento Cifrado Seguro para credenciales, contraseñas y claves criptográficas
+    private val secureSharedPreferences: SharedPreferences = EncryptedSharedPreferences.create(
+        context,
+        "SaludApp_SecurePrefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
+    // SharedPreferences clásica (para migración)
+    private val legacySharedPreferences: SharedPreferences = context.getSharedPreferences("SaludApp_Prefs", Context.MODE_PRIVATE)
 
     init {
+        // Ejecutar migración de secureSharedPreferences clásicas a secureSharedPreferences encriptadas si aplica
+        migrateLegacySharedPreferencesToSecure()
         // Cargar o generar la contraseña única de la base de datos cifrada
         getOrCreatePassphrase()
-        // Migrar datos de SharedPreferences a SQLite encriptada en primer inicio
+        // Migrar datos de secureSharedPreferences a SQLite encriptada en primer inicio
         migrateExistingDataFromSharedPreferences()
     }
 
+    private fun migrateLegacySharedPreferencesToSecure() {
+        if (legacySharedPreferences.all.isNotEmpty()) {
+            val editor = secureSharedPreferences.edit()
+            for ((key, value) in legacySharedPreferences.all) {
+                when (value) {
+                    is String -> editor.putString(key, value)
+                    is Boolean -> editor.putBoolean(key, value)
+                    is Int -> editor.putInt(key, value)
+                    is Float -> editor.putFloat(key, value)
+                    is Long -> editor.putLong(key, value)
+                    is Set<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        editor.putStringSet(key, value as Set<String>)
+                    }
+                }
+            }
+            editor.apply()
+            // Limpiar preferencias inseguras heredadas
+            legacySharedPreferences.edit().clear().apply()
+        }
+    }
+
     private fun getOrCreatePassphrase(): String {
-        var key = sharedPreferences.getString("db_passphrase", null)
+        var key = secureSharedPreferences.getString("db_passphrase", null)
         if (key == null) {
             key = java.util.UUID.randomUUID().toString() + java.util.UUID.randomUUID().toString()
-            sharedPreferences.edit().putString("db_passphrase", key).apply()
+            secureSharedPreferences.edit().putString("db_passphrase", key).apply()
         }
         return key
     }
@@ -40,7 +80,7 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
             val db = getDb()
 
             // 1. Migrar Peso
-            val weightJson = sharedPreferences.getString(KEY_WEIGHT_HISTORY, null)
+            val weightJson = secureSharedPreferences.getString(KEY_WEIGHT_HISTORY, null)
             if (!weightJson.isNullOrEmpty()) {
                 try {
                     val array = JSONArray(weightJson)
@@ -59,14 +99,14 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
                     } finally {
                         db.endTransaction()
                     }
-                    sharedPreferences.edit().remove(KEY_WEIGHT_HISTORY).apply()
+                    secureSharedPreferences.edit().remove(KEY_WEIGHT_HISTORY).apply()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
 
             // 2. Migrar Glucosa
-            val glucoseJson = sharedPreferences.getString(KEY_GLUCOSE_HISTORY, null)
+            val glucoseJson = secureSharedPreferences.getString(KEY_GLUCOSE_HISTORY, null)
             if (!glucoseJson.isNullOrEmpty()) {
                 try {
                     val array = JSONArray(glucoseJson)
@@ -87,14 +127,14 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
                     } finally {
                         db.endTransaction()
                     }
-                    sharedPreferences.edit().remove(KEY_GLUCOSE_HISTORY).apply()
+                    secureSharedPreferences.edit().remove(KEY_GLUCOSE_HISTORY).apply()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
 
             // 3. Migrar Presión
-            val pressureJson = sharedPreferences.getString(KEY_PRESSURE_HISTORY, null)
+            val pressureJson = secureSharedPreferences.getString(KEY_PRESSURE_HISTORY, null)
             if (!pressureJson.isNullOrEmpty()) {
                 try {
                     val array = JSONArray(pressureJson)
@@ -117,14 +157,14 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
                     } finally {
                         db.endTransaction()
                     }
-                    sharedPreferences.edit().remove(KEY_PRESSURE_HISTORY).apply()
+                    secureSharedPreferences.edit().remove(KEY_PRESSURE_HISTORY).apply()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
 
             // 4. Migrar Medicamentos
-            val medJson = sharedPreferences.getString(KEY_MED_LIST, null)
+            val medJson = secureSharedPreferences.getString(KEY_MED_LIST, null)
             if (!medJson.isNullOrEmpty()) {
                 try {
                     val array = JSONArray(medJson)
@@ -149,7 +189,7 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
                     } finally {
                         db.endTransaction()
                     }
-                    sharedPreferences.edit().remove(KEY_MED_LIST).apply()
+                    secureSharedPreferences.edit().remove(KEY_MED_LIST).apply()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -170,7 +210,7 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         private const val KEY_CORREO = "user_correo"
         private const val KEY_SHARE_DATA = "user_share_data"
 
-        // Claves Históricos en SharedPreferences (para migración)
+        // Claves Históricos en secureSharedPreferences (para migración)
         private const val KEY_WEIGHT_HISTORY = "weight_history_json"
         private const val KEY_GLUCOSE_HISTORY = "glucose_history_json"
         private const val KEY_PRESSURE_HISTORY = "pressure_history_json"
@@ -204,7 +244,7 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
     // --- Perfil de Usuario y Autenticación ---
 
     override fun registerUser(nombre: String, apellido: String, edad: Int, correo: String, contrasena: String, shareData: Boolean) {
-        sharedPreferences.edit().apply {
+        secureSharedPreferences.edit().apply {
             putString(KEY_NOMBRE, nombre)
             putString(KEY_APELLIDO, apellido)
             putInt(KEY_EDAD, edad)
@@ -220,55 +260,59 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
     }
 
     override fun loginUser(contrasena: String): Boolean {
-        val savedPassword = sharedPreferences.getString(KEY_PASSWORD, null)
+        val savedPassword = secureSharedPreferences.getString(KEY_PASSWORD, null)
         return if (savedPassword == contrasena) {
-            sharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, true).apply()
+            secureSharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, true).apply()
             true
         } else {
             false
         }
     }
 
-    override fun isLoggedIn(): Boolean = sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)
+    override fun isLoggedIn(): Boolean = secureSharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)
 
-    override fun isRegistered(): Boolean = sharedPreferences.getBoolean(KEY_IS_REGISTERED, false)
+    override fun setLoggedIn(loggedIn: Boolean) {
+        secureSharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, loggedIn).apply()
+    }
 
-    override fun getNombre(): String = sharedPreferences.getString(KEY_NOMBRE, "") ?: ""
+    override fun isRegistered(): Boolean = secureSharedPreferences.getBoolean(KEY_IS_REGISTERED, false)
 
-    override fun getApellido(): String = sharedPreferences.getString(KEY_APELLIDO, "") ?: ""
+    override fun getNombre(): String = secureSharedPreferences.getString(KEY_NOMBRE, "") ?: ""
 
-    override fun getEdad(): Int = sharedPreferences.getInt(KEY_EDAD, 0)
+    override fun getApellido(): String = secureSharedPreferences.getString(KEY_APELLIDO, "") ?: ""
 
-    override fun getCorreo(): String = sharedPreferences.getString(KEY_CORREO, "") ?: ""
+    override fun getEdad(): Int = secureSharedPreferences.getInt(KEY_EDAD, 0)
+
+    override fun getCorreo(): String = secureSharedPreferences.getString(KEY_CORREO, "") ?: ""
 
     override fun verifyPassword(password: String): Boolean {
-        val saved = sharedPreferences.getString(KEY_PASSWORD, null)
+        val saved = secureSharedPreferences.getString(KEY_PASSWORD, null)
         return saved == password
     }
 
     override fun updatePassword(newPassword: String) {
-        sharedPreferences.edit().putString(KEY_PASSWORD, newPassword).apply()
+        secureSharedPreferences.edit().putString(KEY_PASSWORD, newPassword).apply()
     }
 
     override fun destroyAllData() {
         SecureDatabaseManager.destroyDatabase(context)
-        sharedPreferences.edit().clear().apply()
+        secureSharedPreferences.edit().clear().apply()
     }
 
     override fun logout() {
-        sharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, false).apply()
+        secureSharedPreferences.edit().putBoolean(KEY_IS_LOGGED_IN, false).apply()
     }
 
-    override fun getProfileImagePath(): String? = sharedPreferences.getString("profile_image_path", null)
+    override fun getProfileImagePath(): String? = secureSharedPreferences.getString("profile_image_path", null)
 
     override fun saveProfileImagePath(path: String?) {
-        sharedPreferences.edit().putString("profile_image_path", path).apply()
+        secureSharedPreferences.edit().putString("profile_image_path", path).apply()
     }
 
-    override fun getFechaNacimiento(): String = sharedPreferences.getString("user_fecha_nacimiento", "") ?: ""
+    override fun getFechaNacimiento(): String = secureSharedPreferences.getString("user_fecha_nacimiento", "") ?: ""
 
     override fun saveFechaNacimiento(fecha: String) {
-        sharedPreferences.edit().putString("user_fecha_nacimiento", fecha).apply()
+        secureSharedPreferences.edit().putString("user_fecha_nacimiento", fecha).apply()
     }
 
     // --- Control de Peso e IMC ---
@@ -325,100 +369,100 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
 
     // --- Hidratación ---
 
-    override fun getWaterToday(): Int = sharedPreferences.getInt(KEY_WATER_TODAY, 0)
+    override fun getWaterToday(): Int = secureSharedPreferences.getInt(KEY_WATER_TODAY, 0)
 
     override fun saveWaterToday(amount: Int) {
-        sharedPreferences.edit().putInt(KEY_WATER_TODAY, amount).apply()
+        secureSharedPreferences.edit().putInt(KEY_WATER_TODAY, amount).apply()
     }
 
-    override fun getWaterGoal(): Int = sharedPreferences.getInt(KEY_WATER_GOAL, 2000)
+    override fun getWaterGoal(): Int = secureSharedPreferences.getInt(KEY_WATER_GOAL, 2000)
 
     override fun saveWaterGoal(goal: Int) {
-        sharedPreferences.edit().putInt(KEY_WATER_GOAL, goal).apply()
+        secureSharedPreferences.edit().putInt(KEY_WATER_GOAL, goal).apply()
     }
 
     override fun getWaterHistoryDay(dayIndex: Int): Boolean {
-        return sharedPreferences.getBoolean("hid_cumple_dia_$dayIndex", false)
+        return secureSharedPreferences.getBoolean("hid_cumple_dia_$dayIndex", false)
     }
 
     override fun saveWaterHistoryDay(dayIndex: Int, completed: Boolean) {
-        sharedPreferences.edit().putBoolean("hid_cumple_dia_$dayIndex", completed).apply()
+        secureSharedPreferences.edit().putBoolean("hid_cumple_dia_$dayIndex", completed).apply()
     }
 
-    override fun getHydrationWeight(): Float = sharedPreferences.getFloat(KEY_WATER_WEIGHT, 70f)
+    override fun getHydrationWeight(): Float = secureSharedPreferences.getFloat(KEY_WATER_WEIGHT, 70f)
 
     override fun saveHydrationWeight(weight: Float) {
-        sharedPreferences.edit().putFloat(KEY_WATER_WEIGHT, weight).apply()
+        secureSharedPreferences.edit().putFloat(KEY_WATER_WEIGHT, weight).apply()
     }
 
-    override fun getHydrationIsMale(): Boolean = sharedPreferences.getBoolean(KEY_WATER_IS_MALE, true)
+    override fun getHydrationIsMale(): Boolean = secureSharedPreferences.getBoolean(KEY_WATER_IS_MALE, true)
 
     override fun saveHydrationIsMale(isMale: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_WATER_IS_MALE, isMale).apply()
+        secureSharedPreferences.edit().putBoolean(KEY_WATER_IS_MALE, isMale).apply()
     }
 
-    override fun getHydrationActivityPos(): Int = sharedPreferences.getInt(KEY_WATER_ACTIVITY_POS, 0)
+    override fun getHydrationActivityPos(): Int = secureSharedPreferences.getInt(KEY_WATER_ACTIVITY_POS, 0)
 
     override fun saveHydrationActivityPos(pos: Int) {
-        sharedPreferences.edit().putInt(KEY_WATER_ACTIVITY_POS, pos).apply()
+        secureSharedPreferences.edit().putInt(KEY_WATER_ACTIVITY_POS, pos).apply()
     }
 
-    override fun getHydrationCurrentDay(): String = sharedPreferences.getString(KEY_WATER_CURRENT_DAY, "") ?: ""
+    override fun getHydrationCurrentDay(): String = secureSharedPreferences.getString(KEY_WATER_CURRENT_DAY, "") ?: ""
 
     override fun saveHydrationCurrentDay(day: String) {
-        sharedPreferences.edit().putString(KEY_WATER_CURRENT_DAY, day).apply()
+        secureSharedPreferences.edit().putString(KEY_WATER_CURRENT_DAY, day).apply()
     }
 
     // --- Actividad Física ---
 
-    override fun getPhysicalStepsToday(): Float = sharedPreferences.getFloat(KEY_PHYS_STEPS, 0f)
+    override fun getPhysicalStepsToday(): Float = secureSharedPreferences.getFloat(KEY_PHYS_STEPS, 0f)
 
     override fun savePhysicalStepsToday(steps: Float) {
-        sharedPreferences.edit().putFloat(KEY_PHYS_STEPS, steps).apply()
+        secureSharedPreferences.edit().putFloat(KEY_PHYS_STEPS, steps).apply()
     }
 
-    override fun getPhysicalCaloriesToday(): Float = sharedPreferences.getFloat(KEY_PHYS_CALORIES, 0f)
+    override fun getPhysicalCaloriesToday(): Float = secureSharedPreferences.getFloat(KEY_PHYS_CALORIES, 0f)
 
     override fun savePhysicalCaloriesToday(calories: Float) {
-        sharedPreferences.edit().putFloat(KEY_PHYS_CALORIES, calories).apply()
+        secureSharedPreferences.edit().putFloat(KEY_PHYS_CALORIES, calories).apply()
     }
 
-    override fun getPhysicalStreak(): Int = sharedPreferences.getInt(KEY_PHYS_STREAK, 0)
+    override fun getPhysicalStreak(): Int = secureSharedPreferences.getInt(KEY_PHYS_STREAK, 0)
 
     override fun savePhysicalStreak(streak: Int) {
-        sharedPreferences.edit().putInt(KEY_PHYS_STREAK, streak).apply()
+        secureSharedPreferences.edit().putInt(KEY_PHYS_STREAK, streak).apply()
     }
 
-    override fun getPhysicalLastDate(): String = sharedPreferences.getString(KEY_PHYS_LAST_DATE, "") ?: ""
+    override fun getPhysicalLastDate(): String = secureSharedPreferences.getString(KEY_PHYS_LAST_DATE, "") ?: ""
 
     override fun savePhysicalLastDate(date: String) {
-        sharedPreferences.edit().putString(KEY_PHYS_LAST_DATE, date).apply()
+        secureSharedPreferences.edit().putString(KEY_PHYS_LAST_DATE, date).apply()
     }
 
-    override fun getPhysicalCurrentDay(): String = sharedPreferences.getString(KEY_PHYS_CURRENT_DAY, "") ?: ""
+    override fun getPhysicalCurrentDay(): String = secureSharedPreferences.getString(KEY_PHYS_CURRENT_DAY, "") ?: ""
 
     override fun savePhysicalCurrentDay(day: String) {
-        sharedPreferences.edit().putString(KEY_PHYS_CURRENT_DAY, day).apply()
+        secureSharedPreferences.edit().putString(KEY_PHYS_CURRENT_DAY, day).apply()
     }
 
     override fun getPhysicalHistoryDay(dayIndex: Int): Boolean {
-        return sharedPreferences.getBoolean("actividad_cumple_dia_$dayIndex", false)
+        return secureSharedPreferences.getBoolean("actividad_cumple_dia_$dayIndex", false)
     }
 
     override fun savePhysicalHistoryDay(dayIndex: Int, completed: Boolean) {
-        sharedPreferences.edit().putBoolean("actividad_cumple_dia_$dayIndex", completed).apply()
+        secureSharedPreferences.edit().putBoolean("actividad_cumple_dia_$dayIndex", completed).apply()
     }
 
-    override fun getPhysicalStepsYesterday(): Float = sharedPreferences.getFloat("actividad_pasos_ayer", 0f)
+    override fun getPhysicalStepsYesterday(): Float = secureSharedPreferences.getFloat("actividad_pasos_ayer", 0f)
 
     override fun savePhysicalStepsYesterday(steps: Float) {
-        sharedPreferences.edit().putFloat("actividad_pasos_ayer", steps).apply()
+        secureSharedPreferences.edit().putFloat("actividad_pasos_ayer", steps).apply()
     }
 
-    override fun getStreakNotificationSentToday(): Boolean = sharedPreferences.getBoolean("actividad_notif_racha_enviada", false)
+    override fun getStreakNotificationSentToday(): Boolean = secureSharedPreferences.getBoolean("actividad_notif_racha_enviada", false)
 
     override fun saveStreakNotificationSentToday(sent: Boolean) {
-        sharedPreferences.edit().putBoolean("actividad_notif_racha_enviada", sent).apply()
+        secureSharedPreferences.edit().putBoolean("actividad_notif_racha_enviada", sent).apply()
     }
 
     // --- Medicamentos ---
@@ -490,26 +534,26 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         }
     }
 
-    override fun getMedicationCurrentDay(): String = sharedPreferences.getString(KEY_MED_CURRENT_DAY, "") ?: ""
+    override fun getMedicationCurrentDay(): String = secureSharedPreferences.getString(KEY_MED_CURRENT_DAY, "") ?: ""
 
     override fun saveMedicationCurrentDay(day: String) {
-        sharedPreferences.edit().putString(KEY_MED_CURRENT_DAY, day).apply()
+        secureSharedPreferences.edit().putString(KEY_MED_CURRENT_DAY, day).apply()
     }
 
     override fun getTakenSlotsToday(): Set<String> {
-        return sharedPreferences.getStringSet(KEY_MED_TAKEN_TODAY, emptySet()) ?: emptySet()
+        return secureSharedPreferences.getStringSet(KEY_MED_TAKEN_TODAY, emptySet()) ?: emptySet()
     }
 
     override fun saveTakenSlotsToday(slots: Set<String>) {
-        sharedPreferences.edit().putStringSet(KEY_MED_TAKEN_TODAY, slots).apply()
+        secureSharedPreferences.edit().putStringSet(KEY_MED_TAKEN_TODAY, slots).apply()
     }
 
     override fun getMedicationHistoryDay(dayIndex: Int): Boolean {
-        return sharedPreferences.getBoolean("med_cumple_dia_$dayIndex", false)
+        return secureSharedPreferences.getBoolean("med_cumple_dia_$dayIndex", false)
     }
 
     override fun saveMedicationHistoryDay(dayIndex: Int, completed: Boolean) {
-        sharedPreferences.edit().putBoolean("med_cumple_dia_$dayIndex", completed).apply()
+        secureSharedPreferences.edit().putBoolean("med_cumple_dia_$dayIndex", completed).apply()
     }
 
     // --- Control de Glucosa ---
@@ -621,22 +665,23 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         }
     }
 
-    override fun isPrivacyAccepted(): Boolean = sharedPreferences.getBoolean(KEY_PRIVACY_ACCEPTED, false)
+    override fun isPrivacyAccepted(): Boolean = secureSharedPreferences.getBoolean(KEY_PRIVACY_ACCEPTED, false)
 
     override fun savePrivacyAccepted(accepted: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_PRIVACY_ACCEPTED, accepted).apply()
+        secureSharedPreferences.edit().putBoolean(KEY_PRIVACY_ACCEPTED, accepted).apply()
     }
 
-    override fun isBiometricEnabled(): Boolean = sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, true)
+    override fun isBiometricEnabled(): Boolean = secureSharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, true)
 
     override fun saveBiometricEnabled(enabled: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
+        secureSharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
     }
 
-    override fun isModuleEnabled(moduleKey: String): Boolean = sharedPreferences.getBoolean(KEY_MODULE_PREFIX + moduleKey, true)
+    override fun isModuleEnabled(moduleKey: String): Boolean = secureSharedPreferences.getBoolean(KEY_MODULE_PREFIX + moduleKey, true)
 
     override fun saveModuleEnabled(moduleKey: String, enabled: Boolean) {
-        sharedPreferences.edit().putBoolean(KEY_MODULE_PREFIX + moduleKey, enabled).apply()
+        secureSharedPreferences.edit().putBoolean(KEY_MODULE_PREFIX + moduleKey, enabled).apply()
     }
 }
+
 
