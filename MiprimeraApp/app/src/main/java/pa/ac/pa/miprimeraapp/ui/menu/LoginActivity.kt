@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -17,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import pa.ac.pa.miprimeraapp.R
+import pa.ac.pa.miprimeraapp.services.BiometricHelper
 import pa.ac.pa.miprimeraapp.sharedpreferences.SharedPreferencesManager
 
 class LoginActivity : AppCompatActivity() {
@@ -28,8 +30,10 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var btnEnviar: Button
     private lateinit var tvGoToRegister: TextView
     private lateinit var tvForgotPassword: TextView
+    private lateinit var btnFingerprint: ImageButton
 
     private lateinit var prefsManager: SharedPreferencesManager
+    private lateinit var biometricHelper: BiometricHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +48,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         prefsManager = SharedPreferencesManager(this)
+        biometricHelper = BiometricHelper(this)
 
         inicializarVistas()
         setupUI()
@@ -58,6 +63,7 @@ class LoginActivity : AppCompatActivity() {
         btnEnviar = findViewById(R.id.btnEnviar)
         tvGoToRegister = findViewById(R.id.tvGoToRegister)
         tvForgotPassword = findViewById(R.id.tvForgotPassword)
+        btnFingerprint = findViewById(R.id.btnFingerprint)
     }
 
     private fun setupUI() {
@@ -69,6 +75,15 @@ class LoginActivity : AppCompatActivity() {
             // Pre-rellenar con el correo registrado y mantenerlo habilitado/editable
             etEmail.setText(prefsManager.getCorreo())
             etEmail.isEnabled = true
+
+            // Validar si el dispositivo soporta biometría
+            if (biometricHelper.canAuthenticate()) {
+                btnFingerprint.visibility = android.view.View.VISIBLE
+                // Disparar prompt automáticamente solo si el usuario lo tiene habilitado
+                if (prefsManager.isBiometricEnabled()) {
+                    iniciarAutenticacionBiometrica()
+                }
+            }
         } else {
             tvWelcomeTitle.text = "¡Te damos la bienvenida!"
             tvWelcomeSubtitle.text = "Por favor, regístrate para crear tu cuenta"
@@ -114,6 +129,10 @@ class LoginActivity : AppCompatActivity() {
 
         tvForgotPassword.setOnClickListener {
             mostrarDialogoRestablecerContrasena()
+        }
+
+        btnFingerprint.setOnClickListener {
+            iniciarAutenticacionBiometrica()
         }
     }
 
@@ -256,5 +275,22 @@ class LoginActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun iniciarAutenticacionBiometrica() {
+        biometricHelper.showBiometricPrompt(
+            title = "Inicio de Sesión Rápido",
+            subtitle = "Autentícate con tu huella digital",
+            description = "Coloca tu dedo en el sensor para ingresar",
+            onSuccess = {
+                Toast.makeText(this, "¡Autenticación exitosa!", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, MenuActivity::class.java)
+                startActivity(intent)
+                finish()
+            },
+            onFailure = { error ->
+                Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 }

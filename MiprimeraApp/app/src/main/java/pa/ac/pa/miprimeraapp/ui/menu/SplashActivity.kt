@@ -21,6 +21,7 @@ class SplashActivity : AppCompatActivity() {
 
         Handler(Looper.getMainLooper()).postDelayed({
             val intent = when {
+                !prefsManager.isPrivacyAccepted() -> Intent(this, PrivacyActivity::class.java)
                 prefsManager.isLoggedIn() -> Intent(this, MenuActivity::class.java)
                 prefsManager.isRegistered() -> Intent(this, LoginActivity::class.java)
                 else -> Intent(this, RegisterActivity::class.java)

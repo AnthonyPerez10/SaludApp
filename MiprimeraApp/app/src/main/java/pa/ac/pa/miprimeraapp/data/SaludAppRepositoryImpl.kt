@@ -194,6 +194,11 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         // Claves Medicamentos (Configuración rápida)
         private const val KEY_MED_CURRENT_DAY = "med_dia_actual"
         private const val KEY_MED_TAKEN_TODAY = "med_tomas_hoy"
+
+        // Claves de Consentimiento, Biometría y Módulos (Ley N° 81)
+        private const val KEY_PRIVACY_ACCEPTED = "user_privacy_accepted"
+        private const val KEY_BIOMETRIC_ENABLED = "user_biometric_enabled"
+        private const val KEY_MODULE_PREFIX = "module_enabled_"
     }
 
     // --- Perfil de Usuario y Autenticación ---
@@ -605,6 +610,24 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override fun isPrivacyAccepted(): Boolean = sharedPreferences.getBoolean(KEY_PRIVACY_ACCEPTED, false)
+
+    override fun savePrivacyAccepted(accepted: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_PRIVACY_ACCEPTED, accepted).apply()
+    }
+
+    override fun isBiometricEnabled(): Boolean = sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, true)
+
+    override fun saveBiometricEnabled(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
+    }
+
+    override fun isModuleEnabled(moduleKey: String): Boolean = sharedPreferences.getBoolean(KEY_MODULE_PREFIX + moduleKey, true)
+
+    override fun saveModuleEnabled(moduleKey: String, enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_MODULE_PREFIX + moduleKey, enabled).apply()
     }
 }
 

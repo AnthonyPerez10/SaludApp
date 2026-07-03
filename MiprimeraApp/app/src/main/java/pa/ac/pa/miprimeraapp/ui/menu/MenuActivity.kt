@@ -3,6 +3,7 @@ package pa.ac.pa.miprimeraapp.ui.menu
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -137,6 +138,27 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onResume()
         actualizarDashboard()
         configurarHeaderDrawer()
+        actualizarVisibilidadModulos()
+    }
+
+    private fun actualizarVisibilidadModulos() {
+        findViewById<CardView>(R.id.CardV_Peso).visibility = 
+            if (prefsManager.isModuleEnabled("peso")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CarV_Presion_Arterial).visibility = 
+            if (prefsManager.isModuleEnabled("presion")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_Glucosa).visibility = 
+            if (prefsManager.isModuleEnabled("glucosa")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_Control_Fisico).visibility = 
+            if (prefsManager.isModuleEnabled("actividad")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_Hidratacion).visibility = 
+            if (prefsManager.isModuleEnabled("hidratacion")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_medicamentos).visibility = 
+            if (prefsManager.isModuleEnabled("medicina")) View.VISIBLE else View.GONE
     }
 
     /**

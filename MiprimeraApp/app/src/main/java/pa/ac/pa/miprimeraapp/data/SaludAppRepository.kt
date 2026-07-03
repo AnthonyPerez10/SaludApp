@@ -82,4 +82,12 @@ interface SaludAppRepository {
     fun getPressureRecords(): List<RegistroPresion>
     fun addPressureRecord(record: RegistroPresion)
     fun deletePressureRecord(record: RegistroPresion)
+
+    // --- Consentimiento, Privacidad y Módulos (Ley N° 81) ---
+    fun isPrivacyAccepted(): Boolean
+    fun savePrivacyAccepted(accepted: Boolean)
+    fun isBiometricEnabled(): Boolean
+    fun saveBiometricEnabled(enabled: Boolean)
+    fun isModuleEnabled(moduleKey: String): Boolean
+    fun saveModuleEnabled(moduleKey: String, enabled: Boolean)
 }

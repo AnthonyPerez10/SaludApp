@@ -107,19 +107,43 @@
                     android:textSize="14sp"
                     android:layout_marginBottom="24dp" />
 
-                <!-- Botón de Ingreso (btnEnviar) -->
-                <Button
-                    android:id="@+id/btnEnviar"
+                <!-- Contenedor del Botón de Ingreso y Huella -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:text="Iniciar Sesión"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:backgroundTint="@color/peso_primary_blue"
-                    android:textColor="@color/white"
-                    app:cornerRadius="14dp"
-                    android:elevation="4dp"
-                    android:layout_marginBottom="20dp" />
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="20dp">
+
+                    <Button
+                        android:id="@+id/btnEnviar"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:text="Iniciar Sesión"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:backgroundTint="@color/peso_primary_blue"
+                        android:textColor="@color/white"
+                        app:cornerRadius="14dp"
+                        android:elevation="4dp" />
+
+                    <!-- Botón Huella Dactilar -->
+                    <ImageButton
+                        android:id="@+id/btnFingerprint"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/icono_huella"
+                        android:scaleType="fitCenter"
+                        android:padding="10dp"
+                        android:background="@drawable/input_rounf"
+                        android:backgroundTint="@color/ui_menu_background"
+                        android:elevation="4dp"
+                        android:contentDescription="Inicio con Huella"
+                        android:visibility="gone" />
+
+                </LinearLayout>
 
                 <!-- Link a Olvidé Contraseña -->
                 <TextView
