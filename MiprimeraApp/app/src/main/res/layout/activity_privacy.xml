@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/ui_menu_background">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivLogo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/saludapplogo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardPrivacy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@color/white"
+            app:layout_constraintTop_toBottomOf="@id/ivLogo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/cbAcceptConsent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aviso de Privacidad"
+                    android:textColor="@color/peso_primary_blue"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_horizontal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cumplimiento Ley N° 81 - Panamá"
+                    android:textColor="@color/peso_gray_text"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="16dp"
+                    android:layout_gravity="center_horizontal" />
+
+                <!-- ScrollView for legal text -->
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="280dp"
+                    android:background="#F8FAFC"
+                    android:padding="12dp"
+                    android:scrollbars="vertical">
+
+                    <TextView
+                        android:id="@+id/tvPrivacyPolicyText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:textSize="13sp"
+                        android:lineSpacingMultiplier="1.2"
+                        android:text="Cargando aviso de privacidad..." />
+
+                </ScrollView>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <CheckBox
+            android:id="@+id/cbAcceptConsent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="8dp"
+            android:text="Acepto de manera inequívoca y expresa que SaludApp recolecte y procese mis datos sensibles de salud únicamente en este dispositivo para fines de monitoreo personal."
+            android:textColor="@color/ui_text_secondary_666"
+            android:textSize="12sp"
+            app:layout_constraintTop_toBottomOf="@id/cardPrivacy"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/cbAcceptConsent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <Button
+                android:id="@+id/btnReject"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Rechazar"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:backgroundTint="#D32F2F"
+                android:textColor="@color/white"
+                app:cornerRadius="12dp" />
+
+            <Button
+                android:id="@+id/btnAccept"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1.2"
+                android:layout_marginStart="8dp"
+                android:text="Aceptar y Continuar"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/peso_primary_blue"
+                android:textColor="@color/white"
+                app:cornerRadius="12dp"
+                android:enabled="false" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

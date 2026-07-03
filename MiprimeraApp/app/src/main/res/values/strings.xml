@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mi primera App</string>
+    <string name="app_name">Salud APP</string>
 
     <!-- Menu Titles -->
     <string name="menu_peso_title">Control de Peso</string>

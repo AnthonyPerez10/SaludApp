@@ -18,15 +18,15 @@
         android:gravity="center_vertical"
         android:padding="16dp">
 
-        <!-- SOLO ICONO -->
+        <!-- ICONO -->
         <ImageView
-            android:id="@+id/ivIconoIMC"
+            android:id="@+id/ivIconoPresion"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginEnd="16dp"
-            android:contentDescription="Icono IMC"
+            android:contentDescription="Icono Presión"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/normal" />
+            app:srcCompat="@drawable/ic_presion" />
 
         <!-- Textos -->
         <LinearLayout
@@ -35,25 +35,59 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Fecha -->
+            <!-- Fecha + Hora -->
             <TextView
-                android:id="@+id/tvFecha"
+                android:id="@+id/tvFechaHora"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/peso_dark_blue"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                tools:text="Fecha: 01/01/2023 10:00 AM" />
+                tools:text="01/01/2023 10:00 AM" />
 
-            <!-- Peso + IMC -->
+            <!-- Sistólica/Diastólica + Pulso -->
             <TextView
-                android:id="@+id/tvPesoIMC"
+                android:id="@+id/tvPresionValores"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textColor="@color/ui_history_item_text_secondary"
                 android:textSize="13sp"
-                tools:text="Peso: 70.0 kg  •  IMC: 24.5" />
+                tools:text="120/80 mmHg  •  Pulso: 72 BPM" />
+
+            <!-- Detalle Brazo + Clasificación -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="6dp">
+
+                <TextView
+                    android:id="@+id/tvBrazo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/peso_gray_text"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="#ECEFF1"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    tools:text="Brazo Izquierdo"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvClasificacion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@color/peso_save_green"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    tools:text="NORMAL" />
+            </LinearLayout>
 
         </LinearLayout>
 

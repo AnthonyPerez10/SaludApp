@@ -283,11 +283,11 @@
                                 android:textStyle="bold" />
 
                             <androidx.cardview.widget.CardView
-                                android:layout_width="80dp"
-                                android:layout_height="120dp"
-                                app:cardBackgroundColor="@color/peso_background"
+                                android:layout_width="92dp"
+                                android:layout_height="130dp"
+                                app:cardBackgroundColor="@color/white"
                                 app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp">
+                                app:cardElevation="3dp">
 
                                 <NumberPicker
                                     android:id="@+id/npSistolica"
@@ -315,11 +315,11 @@
                                 android:textStyle="bold" />
 
                             <androidx.cardview.widget.CardView
-                                android:layout_width="80dp"
-                                android:layout_height="120dp"
-                                app:cardBackgroundColor="@color/peso_background"
+                                android:layout_width="92dp"
+                                android:layout_height="130dp"
+                                app:cardBackgroundColor="@color/white"
                                 app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp">
+                                app:cardElevation="3dp">
 
                                 <NumberPicker
                                     android:id="@+id/npDiastolica"
@@ -347,11 +347,11 @@
                                 android:textStyle="bold" />
 
                             <androidx.cardview.widget.CardView
-                                android:layout_width="80dp"
-                                android:layout_height="120dp"
-                                app:cardBackgroundColor="@color/peso_background"
+                                android:layout_width="92dp"
+                                android:layout_height="130dp"
+                                app:cardBackgroundColor="@color/white"
                                 app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp">
+                                app:cardElevation="3dp">
 
                                 <NumberPicker
                                     android:id="@+id/npPulso"
@@ -436,198 +436,25 @@
                 android:id="@+id/btnAnalizar"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="@color/peso_save_green"
-                android:text="ANALIZAR MEDICIÓN"
+                android:text="GUARDAR MEDICIÓN"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:cornerRadius="12dp" />
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/cardResumen"
+            <Button
+                android:id="@+id/btnHistorial"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/peso_card_bg"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:text="RESUMEN Y ANÁLISIS"
-                        android:textColor="@color/peso_dark_blue"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="4dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Fecha: "
-                            android:textStyle="bold"
-                            android:textColor="@color/black"/>
-                        <TextView
-                            android:id="@+id/txtResFecha"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/black"
-                            android:text="--/--/----"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Hora: "
-                            android:textStyle="bold"
-                            android:textColor="@color/black"/>
-                        <TextView
-                            android:id="@+id/txtResHora"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="@color/black"
-                            android:text="--:--"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:baselineAligned="false">
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Sistólica: "
-                                    android:textStyle="bold"
-                                    android:textColor="@color/black"/>
-                                <TextView
-                                    android:id="@+id/txtResSistolica"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:textColor="@color/black"
-                                    android:text="-- mmHg"/>
-                            </LinearLayout>
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Diastólica: "
-                                    android:textStyle="bold"
-                                    android:textColor="@color/black"/>
-                                <TextView
-                                    android:id="@+id/txtResDiastolica"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:textColor="@color/black"
-                                    android:text="-- mmHg"/>
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Pulso: "
-                                    android:textStyle="bold"
-                                    android:textColor="@color/black"/>
-                                <TextView
-                                    android:id="@+id/txtResPulso"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:textColor="@color/black"
-                                    android:text="-- BPM"/>
-                            </LinearLayout>
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Brazo: "
-                                    android:textStyle="bold"
-                                    android:textColor="@color/black"/>
-                                <TextView
-                                    android:id="@+id/txtResBrazo"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:textColor="@color/black"
-                                    android:text="--"/>
-                            </LinearLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:background="@color/peso_background"
-                        android:padding="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CLASIFICACIÓN:"
-                            android:textStyle="bold"
-                            android:textColor="@color/black"
-                            android:layout_marginEnd="8dp"/>
-
-                        <TextView
-                            android:id="@+id/txtResClasificacion"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@color/peso_save_green"
-                            android:paddingHorizontal="16dp"
-                            android:paddingVertical="6dp"
-                            android:text="NORMAL"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
-                            android:gravity="center"
-                            android:layout_gravity="center"/>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:backgroundTint="@color/peso_primary_blue"
+                android:text="VER HISTORIAL"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
 
         </LinearLayout>
     </ScrollView>

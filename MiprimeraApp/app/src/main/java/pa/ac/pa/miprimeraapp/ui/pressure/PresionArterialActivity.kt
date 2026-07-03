@@ -34,16 +34,9 @@ class PresionArterialActivity : AppCompatActivity() {
     private lateinit var npPulso: NumberPicker
     private lateinit var rgBrazo: RadioGroup
     private lateinit var btnAnalizar: Button
+    private lateinit var btnHistorial: Button
 
-    // Componentes del resumen de la última medición
-    private lateinit var cardResumen: CardView
-    private lateinit var txtResFecha: TextView
-    private lateinit var txtResHora: TextView
-    private lateinit var txtResSistolica: TextView
-    private lateinit var txtResDiastolica: TextView
-    private lateinit var txtResPulso: TextView
-    private lateinit var txtResBrazo: TextView
-    private lateinit var txtResClasificacion: TextView
+
 
     // KPIs del panel de estadísticas
     private lateinit var tvStatSysAvg: TextView
@@ -73,6 +66,10 @@ class PresionArterialActivity : AppCompatActivity() {
         btnFecha.setOnClickListener { mostrarDatePicker() }
         btnHora.setOnClickListener { mostrarTimePicker() }
         btnAnalizar.setOnClickListener { registrarMedicion() }
+        btnHistorial.setOnClickListener {
+            val intent = android.content.Intent(this, HistorialPresionActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun inicializarVistas() {
@@ -85,15 +82,9 @@ class PresionArterialActivity : AppCompatActivity() {
         npPulso = findViewById(R.id.npPulso)
         rgBrazo = findViewById(R.id.rgBrazo)
         btnAnalizar = findViewById(R.id.btnAnalizar)
+        btnHistorial = findViewById(R.id.btnHistorial)
 
-        cardResumen = findViewById(R.id.cardResumen)
-        txtResFecha = findViewById(R.id.txtResFecha)
-        txtResHora = findViewById(R.id.txtResHora)
-        txtResSistolica = findViewById(R.id.txtResSistolica)
-        txtResDiastolica = findViewById(R.id.txtResDiastolica)
-        txtResPulso = findViewById(R.id.txtResPulso)
-        txtResBrazo = findViewById(R.id.txtResBrazo)
-        txtResClasificacion = findViewById(R.id.txtResClasificacion)
+
 
         // KPIs de estadísticas
         tvStatSysAvg = findViewById(R.id.tvStatSysAvg)
@@ -129,24 +120,39 @@ class PresionArterialActivity : AppCompatActivity() {
             btnFecha.text = fechaSeleccionada
         }, anio, mes, dia)
 
+        // Restricción: Desde 2015 hasta el día de hoy
+        val calMin = Calendar.getInstance().apply { set(2015, Calendar.JANUARY, 1) }
+        datePickerDialog.datePicker.minDate = calMin.timeInMillis
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+
         datePickerDialog.show()
     }
 
     /**
-     * Muestra un TimePickerDialog para seleccionar la hora de la toma.
+     * Muestra un TimePickerDialog de tipo Spinner para seleccionar la hora de la toma.
      */
     private fun mostrarTimePicker() {
         val calendario = Calendar.getInstance()
         val hora = calendario.get(Calendar.HOUR_OF_DAY)
         val minuto = calendario.get(Calendar.MINUTE)
 
-        val timePickerDialog = TimePickerDialog(this, { _, hourOfDay, minute ->
-            val amPm = if (hourOfDay >= 12) "PM" else "AM"
-            val hora12 = if (hourOfDay % 12 == 0) 12 else hourOfDay % 12
-            horaSeleccionada = String.format(Locale.getDefault(), "%02d:%02d %s", hora12, minute, amPm)
-            txtHora.text = horaSeleccionada
-        }, hora, minuto, false)
+        // Usamos el tema Holo Light Dialog para mostrar selectores de rueda (spinner) en lugar del reloj radial
+        val timePickerDialog = TimePickerDialog(
+            this,
+            android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+            { _, hourOfDay, minute ->
+                val amPm = if (hourOfDay < 12) "AM" else "PM"
+                val hora12 = if (hourOfDay % 12 == 0) 12 else hourOfDay % 12
+                horaSeleccionada = String.format(Locale.getDefault(), "%02d:%02d %s", hora12, minute, amPm)
+                txtHora.text = horaSeleccionada
+            },
+            hora,
+            minuto,
+            false
+        )
 
+        // Limpiar el fondo clásico de Holo para una apariencia moderna
+        timePickerDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         timePickerDialog.show()
     }
 
@@ -217,25 +223,6 @@ class PresionArterialActivity : AppCompatActivity() {
         val history = repository.getPressureRecords()
 
         if (history.isNotEmpty()) {
-            val ultimo = history.first()
-
-            // Actualizar tarjeta de última lectura
-            cardResumen.visibility = View.VISIBLE
-            txtResFecha.text = ultimo.fecha
-            txtResHora.text = ultimo.hora
-            txtResSistolica.text = ultimo.sistolica.toString()
-            txtResDiastolica.text = ultimo.diastolica.toString()
-            txtResPulso.text = "${ultimo.pulso} lpm"
-            txtResBrazo.text = ultimo.brazo
-            txtResClasificacion.text = ultimo.clasificacion
-
-            // Cambiar color de clasificación según riesgo
-            when (ultimo.clasificacion) {
-                "Normal" -> txtResClasificacion.setTextColor(Color.parseColor("#2E7D32")) // Verde
-                "Elevada" -> txtResClasificacion.setTextColor(Color.parseColor("#F57C00")) // Naranja
-                else -> txtResClasificacion.setTextColor(Color.parseColor("#D32F2F")) // Rojo
-            }
-
             // Calcular KPIs promedio de todo el historial
             val count = history.size
             val avgSys = history.sumOf { it.sistolica } / count
@@ -246,7 +233,6 @@ class PresionArterialActivity : AppCompatActivity() {
             tvStatDiaAvg.text = "$avgDia mmHg"
             tvStatPulseAvg.text = "$avgPulse lpm"
         } else {
-            cardResumen.visibility = View.GONE
             tvStatSysAvg.text = "--"
             tvStatDiaAvg.text = "--"
             tvStatPulseAvg.text = "--"

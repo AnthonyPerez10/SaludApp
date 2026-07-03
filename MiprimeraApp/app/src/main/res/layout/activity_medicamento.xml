@@ -428,10 +428,24 @@
                 android:id="@+id/btnOpenAddMedModal"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="12dp"
                 android:text="+ Añadir Nuevo Medicamento"
                 android:textAllCaps="false"
                 android:backgroundTint="@color/peso_primary_blue"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                app:cornerRadius="16dp" />
+
+            <!-- BOTÓN PARA VER HISTORIAL -->
+            <Button
+                android:id="@+id/btnHistorial"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="24dp"
+                android:text="Ver Historial de Medicina"
+                android:textAllCaps="false"
+                android:backgroundTint="@color/peso_save_green"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 android:textSize="14sp"

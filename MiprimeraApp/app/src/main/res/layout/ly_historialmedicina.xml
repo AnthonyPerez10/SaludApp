@@ -18,42 +18,62 @@
         android:gravity="center_vertical"
         android:padding="16dp">
 
-        <!-- SOLO ICONO -->
+        <!-- ICONO DE MEDICAMENTOS -->
         <ImageView
-            android:id="@+id/ivIconoIMC"
+            android:id="@+id/ivIconoMedicina"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginEnd="16dp"
-            android:contentDescription="Icono IMC"
-            android:scaleType="centerInside"
-            app:srcCompat="@drawable/normal" />
+            android:contentDescription="Icono Medicamento"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/icono_medicamentos" />
 
-        <!-- Textos -->
+        <!-- Textos y Detalles -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <!-- Fecha -->
+            <!-- Nombre de Medicina -->
             <TextView
-                android:id="@+id/tvFecha"
+                android:id="@+id/tvMedName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/peso_dark_blue"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
-                tools:text="Fecha: 01/01/2023 10:00 AM" />
+                tools:text="Paracetamol" />
 
-            <!-- Peso + IMC -->
+            <!-- Dosis + Frecuencia -->
             <TextView
-                android:id="@+id/tvPesoIMC"
+                android:id="@+id/tvMedDoseFrequency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textColor="@color/ui_history_item_text_secondary"
                 android:textSize="13sp"
-                tools:text="Peso: 70.0 kg  •  IMC: 24.5" />
+                tools:text="Dosis: 1 Pastillas  •  Cada 8 horas" />
+
+            <!-- Duración + Inventario / Stock -->
+            <TextView
+                android:id="@+id/tvMedDurationInventory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/peso_gray_text"
+                android:textSize="12sp"
+                tools:text="Duración: 7 días  •  Inventario: 20 un." />
+
+            <!-- Fecha Registrado -->
+            <TextView
+                android:id="@+id/tvMedDateRegistered"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#90A4AE"
+                android:textSize="10sp"
+                tools:text="Registrado: 02/07/2026" />
 
         </LinearLayout>
 
@@ -65,7 +85,7 @@
             android:layout_marginStart="8dp"
             android:padding="6dp"
             android:src="@drawable/icono_eliminar"
-            android:contentDescription="Eliminar registro"
+            android:contentDescription="Eliminar medicamento"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
     </LinearLayout>

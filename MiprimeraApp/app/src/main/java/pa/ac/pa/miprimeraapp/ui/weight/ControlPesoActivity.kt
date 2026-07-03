@@ -162,7 +162,7 @@ class ControlPesoActivity : AppCompatActivity() {
             tvClasificacion.text = categorizarIMC(imc)
 
             // Persistencia del nuevo cálculo en la capa de datos modular
-            val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+            val fechaActual = SimpleDateFormat("dd/MM/yyyy h:mm a", Locale.getDefault()).format(Date())
             val nuevoRegistro = RegistroPeso(fechaActual, peso, imc)
             repository.addWeightRecord(nuevoRegistro)
 

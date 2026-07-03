@@ -70,7 +70,18 @@
                             android:text="REGISTRO: Hoy - Martes, 19 Octubre"
                             android:textColor="@color/peso_gray_text"
                             android:textSize="14sp"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp"/>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchNotifications"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notificaciones de Racha"
+                            android:textColor="@color/peso_gray_text"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:checked="true" />
                     </LinearLayout>
 
                 </RelativeLayout>

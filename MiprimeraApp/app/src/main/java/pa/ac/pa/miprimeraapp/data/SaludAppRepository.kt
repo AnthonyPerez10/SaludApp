@@ -20,10 +20,15 @@ interface SaludAppRepository {
     fun updatePassword(newPassword: String)
     fun destroyAllData()
     fun logout()
+    fun getProfileImagePath(): String?
+    fun saveProfileImagePath(path: String?)
+    fun getFechaNacimiento(): String
+    fun saveFechaNacimiento(fecha: String)
 
     // --- Control de Peso e IMC ---
     fun getWeightHistory(): List<RegistroPeso>
     fun addWeightRecord(record: RegistroPeso)
+    fun deleteWeightRecord(record: RegistroPeso)
 
     // --- Hidratación ---
     fun getWaterToday(): Int
@@ -62,6 +67,7 @@ interface SaludAppRepository {
     // --- Medicamentos ---
     fun getMedications(): List<Medication>
     fun saveMedications(meds: List<Medication>)
+    fun deleteMedication(id: String)
     fun getMedicationCurrentDay(): String
     fun saveMedicationCurrentDay(day: String)
     fun getTakenSlotsToday(): Set<String>
@@ -76,4 +82,13 @@ interface SaludAppRepository {
     // --- Presión Arterial ---
     fun getPressureRecords(): List<RegistroPresion>
     fun addPressureRecord(record: RegistroPresion)
+    fun deletePressureRecord(record: RegistroPresion)
+
+    // --- Consentimiento, Privacidad y Módulos (Ley N° 81) ---
+    fun isPrivacyAccepted(): Boolean
+    fun savePrivacyAccepted(accepted: Boolean)
+    fun isBiometricEnabled(): Boolean
+    fun saveBiometricEnabled(enabled: Boolean)
+    fun isModuleEnabled(moduleKey: String): Boolean
+    fun saveModuleEnabled(moduleKey: String, enabled: Boolean)
 }

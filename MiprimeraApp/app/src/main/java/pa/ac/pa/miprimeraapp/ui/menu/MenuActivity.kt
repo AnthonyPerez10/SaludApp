@@ -3,6 +3,7 @@ package pa.ac.pa.miprimeraapp.ui.menu
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -104,6 +105,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val headerView = navView.getHeaderView(0)
         val tvNavHeaderName = headerView.findViewById<TextView>(R.id.tvNavHeaderName)
         val tvNavHeaderEmail = headerView.findViewById<TextView>(R.id.tvNavHeaderEmail)
+        val ivNavHeaderProfilePhoto = headerView.findViewById<ImageView>(R.id.ivNavHeaderProfilePhoto)
 
         if (prefsManager.isRegistered()) {
             tvNavHeaderName.text = "¡Hola, ${prefsManager.getNombre()}!"
@@ -112,11 +114,51 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             tvNavHeaderName.text = "¡Hola, Usuario!"
             tvNavHeaderEmail.text = "correo@ejemplo.com"
         }
+
+        // Cargar foto de perfil en el drawer
+        val path = prefsManager.getProfileImagePath()
+        if (path != null) {
+            val file = java.io.File(path)
+            if (file.exists()) {
+                val bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath)
+                if (bitmap != null) {
+                    ivNavHeaderProfilePhoto.setImageBitmap(bitmap)
+                } else {
+                    ivNavHeaderProfilePhoto.setImageResource(R.drawable.icono_perfil)
+                }
+            } else {
+                ivNavHeaderProfilePhoto.setImageResource(R.drawable.icono_perfil)
+            }
+        } else {
+            ivNavHeaderProfilePhoto.setImageResource(R.drawable.icono_perfil)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         actualizarDashboard()
+        configurarHeaderDrawer()
+        actualizarVisibilidadModulos()
+    }
+
+    private fun actualizarVisibilidadModulos() {
+        findViewById<CardView>(R.id.CardV_Peso).visibility = 
+            if (prefsManager.isModuleEnabled("peso")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CarV_Presion_Arterial).visibility = 
+            if (prefsManager.isModuleEnabled("presion")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_Glucosa).visibility = 
+            if (prefsManager.isModuleEnabled("glucosa")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_Control_Fisico).visibility = 
+            if (prefsManager.isModuleEnabled("actividad")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_Hidratacion).visibility = 
+            if (prefsManager.isModuleEnabled("hidratacion")) View.VISIBLE else View.GONE
+            
+        findViewById<CardView>(R.id.CardV_medicamentos).visibility = 
+            if (prefsManager.isModuleEnabled("medicina")) View.VISIBLE else View.GONE
     }
 
     /**
@@ -125,7 +167,8 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_profile -> {
-                mostrarDialogoPerfil()
+                val intent = Intent(this, PerfilActivity::class.java)
+                startActivity(intent)
             }
             R.id.nav_change_password -> {
                 mostrarDialogoCambiarContrasena()
@@ -169,17 +212,9 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             setPadding(50, 40, 50, 40)
         }
 
-        val etCurrent = EditText(context).apply {
-            hint = "Contraseña Actual"
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-        }
         val etNew = EditText(context).apply {
             hint = "Nueva Contraseña (mín. 4 caracteres)"
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { topMargin = 20 }
         }
         val etConfirm = EditText(context).apply {
             hint = "Confirmar Nueva Contraseña"
@@ -190,7 +225,6 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             ).apply { topMargin = 20 }
         }
 
-        layout.addView(etCurrent)
         layout.addView(etNew)
         layout.addView(etConfirm)
 
@@ -198,22 +232,16 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             .setTitle("Cambiar Contraseña")
             .setView(layout)
             .setPositiveButton("Guardar") { dialog, _ ->
-                val current = etCurrent.text.toString().trim()
                 val newPass = etNew.text.toString().trim()
                 val confirm = etConfirm.text.toString().trim()
 
-                if (current.isEmpty() || newPass.isEmpty() || confirm.isEmpty()) {
+                if (newPass.isEmpty() || confirm.isEmpty()) {
                     Toast.makeText(context, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 
-                if (current.length > 32 || newPass.length > 32 || confirm.length > 32) {
+                if (newPass.length > 32 || confirm.length > 32) {
                     Toast.makeText(context, "Las contraseñas no pueden exceder los 32 caracteres", Toast.LENGTH_LONG).show()
-                    return@setPositiveButton
-                }
-
-                if (!prefsManager.verifyPassword(current)) {
-                    Toast.makeText(context, "La contraseña actual es incorrecta", Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
 
