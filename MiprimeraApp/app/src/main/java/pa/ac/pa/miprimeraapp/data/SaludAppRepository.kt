@@ -60,6 +60,8 @@ interface SaludAppRepository {
     fun savePhysicalCurrentDay(day: String)
     fun getPhysicalHistoryDay(dayIndex: Int): Boolean
     fun savePhysicalHistoryDay(dayIndex: Int, completed: Boolean)
+    fun getPhysicalHistoryStepsDay(dayIndex: Int): Float
+    fun savePhysicalHistoryStepsDay(dayIndex: Int, steps: Float)
     fun getPhysicalStepsYesterday(): Float
     fun savePhysicalStepsYesterday(steps: Float)
     fun getStreakNotificationSentToday(): Boolean

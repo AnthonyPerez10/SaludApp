@@ -1,7 +1,11 @@
 package pa.ac.pa.miprimeraapp.ui.menu
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
@@ -29,6 +33,7 @@ import java.util.*
  * Actúa como dashboard de salud y ahora incluye un panel de navegación lateral (Hamburger Menu)
  * para administrar el perfil de usuario, cambiar contraseñas y destruir datos de salud.
  */
+
 class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var prefsManager: SharedPreferencesManager
@@ -142,6 +147,8 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             ivNavHeaderProfilePhoto.setImageResource(R.drawable.icono_perfil)
         }
+
+        checkNotificationPermission()
     }
 
     override fun onResume() {
@@ -268,7 +275,7 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
 
         val etNew = EditText(context).apply {
-            hint = "Nueva Contraseña (mín. 4 caracteres)"
+            hint = "Nueva Contraseña (mín. 8 caracteres y especiales)"
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
         val etConfirm = EditText(context).apply {
@@ -300,8 +307,8 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     return@setPositiveButton
                 }
 
-                if (newPass.length < 4) {
-                    Toast.makeText(context, "La nueva contraseña debe tener al menos 4 caracteres", Toast.LENGTH_LONG).show()
+                if (!isPasswordValid(newPass)) {
+                    Toast.makeText(context, "La nueva contraseña debe tener al menos 8 caracteres y contener al menos un carácter especial.", Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
 
@@ -411,5 +418,24 @@ class MenuActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         val taken = prefsManager.getTakenSlotsToday().size
         tvMenuMedsKPI.text = "$taken / $totalSlots"
+    }
+
+    private fun isPasswordValid(password: String): Boolean {
+        if (password.length < 8) return false
+        val specialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?\\~`"
+        return password.any { it in specialChars }
+    }
+
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1010
+                )
+            }
+        }
     }
 }

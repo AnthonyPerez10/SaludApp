@@ -105,6 +105,21 @@ class PedometerService : Service(), SensorEventListener {
             repository.savePhysicalCurrentDay(hoyStr)
             repository.saveStreakNotificationSentToday(false)
 
+            val calendar = Calendar.getInstance()
+            val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+            val dayIndex = when (dayOfWeek) {
+                Calendar.MONDAY -> 0
+                Calendar.TUESDAY -> 1
+                Calendar.WEDNESDAY -> 2
+                Calendar.THURSDAY -> 3
+                Calendar.FRIDAY -> 4
+                Calendar.SATURDAY -> 5
+                Calendar.SUNDAY -> 6
+                else -> 0
+            }
+            repository.savePhysicalHistoryStepsDay(dayIndex, 0f)
+            repository.savePhysicalHistoryDay(dayIndex, false)
+
             // Reiniciar tracker de notificaciones de hidratación del día
             getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
                 .edit()
@@ -131,10 +146,25 @@ class PedometerService : Service(), SensorEventListener {
             .setOngoing(true)
             .build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val hasPhysPerm = androidx.core.content.ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.ACTIVITY_RECOGNITION
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+                if (hasPhysPerm) {
+                    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_HEALTH)
+                } else {
+                    startForeground(NOTIFICATION_ID, notification)
+                }
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e("PedometerService", "Error al iniciar foreground service: ${e.localizedMessage}")
+            stopSelf() // Detener el servicio limpiamente para no colgar el proceso
         }
     }
 
@@ -234,6 +264,21 @@ class PedometerService : Service(), SensorEventListener {
 
         stepsToday += cantidad
         repository.savePhysicalStepsToday(stepsToday)
+
+        val calendar = Calendar.getInstance()
+        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        val dayIndex = when (dayOfWeek) {
+            Calendar.MONDAY -> 0
+            Calendar.TUESDAY -> 1
+            Calendar.WEDNESDAY -> 2
+            Calendar.THURSDAY -> 3
+            Calendar.FRIDAY -> 4
+            Calendar.SATURDAY -> 5
+            Calendar.SUNDAY -> 6
+            else -> 0
+        }
+        repository.savePhysicalHistoryStepsDay(dayIndex, stepsToday)
+        repository.savePhysicalHistoryDay(dayIndex, stepsToday >= 10000f)
 
         actualizarNotificacion()
         evaluarNotificacionRacha()
