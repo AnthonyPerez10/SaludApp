@@ -213,7 +213,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         val etNewPass = EditText(context).apply {
-            hint = "Nueva Contraseña (mín. 4 caracteres)"
+            hint = "Nueva Contraseña (mín. 8 caracteres y especiales)"
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
 
@@ -255,8 +255,8 @@ class LoginActivity : AppCompatActivity() {
                     return@setPositiveButton
                 }
 
-                if (newPass.length < 4) {
-                    Toast.makeText(context, "La contraseña debe tener al menos 4 caracteres", Toast.LENGTH_LONG).show()
+                if (!isPasswordValid(newPass)) {
+                    Toast.makeText(context, "La contraseña debe tener al menos 8 caracteres y contener al menos un carácter especial.", Toast.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
 
@@ -293,5 +293,11 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
             }
         )
+    }
+
+    private fun isPasswordValid(password: String): Boolean {
+        if (password.length < 8) return false
+        val specialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?\\~`"
+        return password.any { it in specialChars }
     }
 }

@@ -209,8 +209,8 @@ class RegisterActivity : AppCompatActivity() {
             return
         }
 
-        if (password.length < 4) {
-            etPassword.error = "La contraseña debe tener al menos 4 caracteres"
+        if (!isPasswordValid(password)) {
+            etPassword.error = "La contraseña debe tener al menos 8 caracteres y contener al menos un carácter especial"
             etPassword.requestFocus()
             return
         }
@@ -230,5 +230,11 @@ class RegisterActivity : AppCompatActivity() {
         val intent = Intent(this, MenuActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun isPasswordValid(password: String): Boolean {
+        if (password.length < 8) return false
+        val specialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?\\~`"
+        return password.any { it in specialChars }
     }
 }

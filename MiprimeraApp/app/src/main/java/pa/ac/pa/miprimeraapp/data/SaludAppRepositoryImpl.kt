@@ -453,6 +453,14 @@ class SaludAppRepositoryImpl(private val context: Context) : SaludAppRepository 
         secureSharedPreferences.edit().putBoolean("actividad_cumple_dia_$dayIndex", completed).apply()
     }
 
+    override fun getPhysicalHistoryStepsDay(dayIndex: Int): Float {
+        return secureSharedPreferences.getFloat("actividad_pasos_dia_$dayIndex", 0f)
+    }
+
+    override fun savePhysicalHistoryStepsDay(dayIndex: Int, steps: Float) {
+        secureSharedPreferences.edit().putFloat("actividad_pasos_dia_$dayIndex", steps).apply()
+    }
+
     override fun getPhysicalStepsYesterday(): Float = secureSharedPreferences.getFloat("actividad_pasos_ayer", 0f)
 
     override fun savePhysicalStepsYesterday(steps: Float) {

@@ -143,16 +143,31 @@ class ActividadFisicaActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Agregar Pasos rápidos (+1000) enviando comando al servicio en segundo plano
         btnAddSteps.setOnClickListener {
-            val intent = Intent(this, PedometerService::class.java).apply {
-                action = "pa.ac.pa.miprimeraapp.ADD_STEPS"
-                putExtra("amount", 1000)
+            try {
+                val permissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+                } else {
+                    true
+                }
+                
+                if (permissionGranted) {
+                    val intent = Intent(this, PedometerService::class.java).apply {
+                        action = "pa.ac.pa.miprimeraapp.ADD_STEPS"
+                        putExtra("amount", 1000)
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent)
+                    } else {
+                        startService(intent)
+                    }
+                    Toast.makeText(this, "+1000 Pasos manuales solicitados", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Permiso de actividad física requerido para el podómetro.", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Error al enviar pasos: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            Toast.makeText(this, "+1000 Pasos manuales solicitados", Toast.LENGTH_SHORT).show()
         }
 
         val sharedPrefs = getSharedPreferences("SaludAppPrefs", Context.MODE_PRIVATE)
@@ -195,11 +210,26 @@ class ActividadFisicaActivity : AppCompatActivity() {
     }
 
     private fun iniciarServicioPodometro() {
-        val intent = Intent(this, PedometerService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        try {
+            val permissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+            
+            if (permissionGranted) {
+                val intent = Intent(this, PedometerService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
+            } else {
+                Toast.makeText(this, "Permiso de actividad física requerido para iniciar el podómetro.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "No se pudo iniciar el podómetro: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -274,6 +304,7 @@ class ActividadFisicaActivity : AppCompatActivity() {
         
         val cumpleMeta = (stepsToday >= 10000f || caloriesToday >= 600f)
         repository.savePhysicalHistoryDay(dayIndex, cumpleMeta)
+        repository.savePhysicalHistoryStepsDay(dayIndex, stepsToday)
     }
 
     private fun guardarMetaAyer(diaAyer: String?) {
@@ -295,6 +326,7 @@ class ActividadFisicaActivity : AppCompatActivity() {
                     else -> 0
                 }
                 repository.savePhysicalHistoryDay(dayIndex, stepsToday >= 10000f || caloriesToday >= 600f)
+                repository.savePhysicalHistoryStepsDay(dayIndex, stepsToday)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -320,10 +352,18 @@ class ActividadFisicaActivity : AppCompatActivity() {
         val bars = arrayOf(barL, barM, barMi, barJ, barV, barS, barD)
         val density = resources.displayMetrics.density
         for (i in 0..6) {
-            val cumple = repository.getPhysicalHistoryDay(i)
+            val steps = repository.getPhysicalHistoryStepsDay(i)
             val bar = bars[i]
-            bar.setBackgroundColor(android.graphics.Color.parseColor(if (cumple) "#2E7D32" else "#B0BEC5"))
-            val heightDp = if (cumple) 90L else 30L
+            
+            val colorStr = when {
+                steps >= 10000f -> "#2E7D32" // Verde (Cumplido)
+                steps > 0f -> "#42A5F5"     // Azul (En progreso)
+                else -> "#B0BEC5"           // Gris (Sin pasos)
+            }
+            bar.setBackgroundColor(android.graphics.Color.parseColor(colorStr))
+            
+            val ratio = (steps / 10000f).coerceIn(0f, 1f)
+            val heightDp = 15L + (ratio * 75L).toLong()
             val params = bar.layoutParams
             params.height = (heightDp * density).toInt()
             bar.layoutParams = params

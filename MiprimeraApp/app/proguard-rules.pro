@@ -24,3 +24,7 @@
 -keep class net.zetetic.database.** { *; }
 -keep class net.zetetic.database.sqlcipher.** { *; }
 -dontwarn net.zetetic.database.**
+
+# Evitar advertencias/errores por clases de anotaciones faltantes en compilación
+-dontwarn javax.annotation.**
+-dontwarn org.checkerframework.**
